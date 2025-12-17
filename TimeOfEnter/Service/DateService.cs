@@ -1,0 +1,75 @@
+﻿using TimeOfEnter.Common.Pagination;
+using TimeOfEnter.Controllers;
+using TimeOfEnter.DTO;
+using TimeOfEnter.Model;
+using TimeOfEnter.Repository;
+
+namespace TimeOfEnter.Service
+{
+    public class DateService: IDateService
+    {
+        private readonly IDateRepository dateRepository;
+
+        public DateService(IDateRepository dateRepository)
+        {
+            this.dateRepository = dateRepository;
+        }
+
+        public async Task AddBookingAsync(TimeOfBookingWithoutId dto)
+        {
+            var allDates = await dateRepository.GetAllasync();
+
+            var MatchingTime = allDates.Any(d =>
+                dto.StartTime < d.EndTime &&
+                dto.EndTime > d.StartTime
+                );
+            if (MatchingTime)
+            {
+                throw new Exception("This Time is Already Booking");
+            }
+
+            var booking = new Date
+            {
+
+                StartTime = dto.StartTime,
+                EndTime = dto.EndTime
+
+            };
+
+            await dateRepository.Addasync(booking);
+            await dateRepository.SaveAsync();
+
+          
+        }
+        public async Task<List<Date>> GetAvailableNowAsync()
+        {
+            var requestedTime = DateTime.Now;
+            var allDates = await dateRepository.GetAllasync();
+            return allDates
+           .Where(d => requestedTime >= d.StartTime && requestedTime <= d.EndTime)
+           .ToList();
+  
+        }
+        public async Task<List<AppDateDto>> GetAllBookingsAsync()
+        {
+            var allDates = await dateRepository.GetAllasync();
+           return allDates
+            .Select(d => new AppDateDto(d.Id, d.StartTime,d.EndTime!.Value)).ToList();
+           
+        }
+        public async Task<PageResult<AppDateDto>> GetPagedAsync(int page, int pageSize)
+        {
+            var allDates = await dateRepository.GetAllasync();
+            var bookings = allDates
+                .Select(d => new AppDateDto(d.Id, d.StartTime, d.EndTime)).ToList();
+
+            var skip = (page - 1) * pageSize;
+            var pageDates = bookings.Skip(skip).Take(pageSize).ToList();
+            var totalPages = (int)Math.Ceiling(bookings.Count / (double)pageSize);
+            var countItem = bookings.Count;
+            return new PageResult<AppDateDto>(page, pageSize, totalPages, countItem, bookings);
+        }
+
+ 
+    }
+}
