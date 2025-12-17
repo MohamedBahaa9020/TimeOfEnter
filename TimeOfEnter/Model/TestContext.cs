@@ -1,13 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AuthenticationProject.Model;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace TimeOfEnter.Model
 {
-    public class TestContext:DbContext
+    public class TestContext:IdentityDbContext<AppUser>
     {
         public DbSet<Date> Dates { get; set; }
         
 
-        public TestContext(DbContextOptions options):base(options)
+        public TestContext(DbContextOptions<TestContext> options):base(options)
         {
             
         }

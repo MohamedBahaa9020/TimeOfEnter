@@ -2,7 +2,7 @@
 
 namespace TimeOfEnter.Model
 {
-    public class    Date
+    public class Date
     {
         public int Id { get; set; }
         [Required]

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using TimeOfEnter.Service;
 using TimeOfEnter.Common.Responses;
 using TimeOfEnter.Common.Pagination;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TimeOfEnter.Controllers
 {
@@ -23,7 +24,7 @@ namespace TimeOfEnter.Controllers
         {
             this.dateSevice = dateSevice;
         }
-
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> UserDate(TimeOfBookingWithoutId dto)
         { 
