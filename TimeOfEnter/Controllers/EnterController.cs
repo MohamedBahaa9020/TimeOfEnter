@@ -11,58 +11,50 @@ using TimeOfEnter.Common.Responses;
 using TimeOfEnter.Common.Pagination;
 using Microsoft.AspNetCore.Authorization;
 
-namespace TimeOfEnter.Controllers
+namespace TimeOfEnter.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class EnterController(IDateService dateSevice) : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class EnterController : ControllerBase
+    [Authorize]
+    [HttpPost]
+    public async Task<IActionResult> UserDate(TimeOfBookingWithoutId dto)
+    { 
+        await dateSevice.AddBookingAsync(dto);
+
+        return Ok("Added Successfully");
+    }
+    [HttpPost("Avilable")]
+    public async Task< IActionResult> CheckDate()
     {
-        
-        private readonly IDateService dateSevice;
 
-        public EnterController(IDateRepository dateRepository ,IDateService dateSevice)
-        {
-            this.dateSevice = dateSevice;
-        }
-        [Authorize]
-        [HttpPost]
-        public async Task<IActionResult> UserDate(TimeOfBookingWithoutId dto)
-        { 
-            await dateSevice.AddBookingAsync(dto);
+        var matchingDates = await dateSevice.GetAvailableNowAsync();
 
-            return Ok("Added Successfully");
-        }
-        [HttpPost("Avilable")]
-        public async Task< IActionResult> CheckDate()
-        {
-
-            var matchingDates = await dateSevice.GetAvailableNowAsync();
-
-            if (!matchingDates.Any())
-                return NotFound("No available date at this time.");
+        if (!matchingDates.Any())
+            return NotFound("No available date at this time.");
 
 
-          return Ok(matchingDates);
-
-        }
-
-        [HttpGet("AllBookingDate")]
-        public async Task< ActionResult> AllBookingDate()
-        {
-
-            var bookings = await dateSevice.GetAllBookingsAsync();
-            return Ok(new ApiResponse(true, new { bookings }));
-        }
-
-        [HttpGet ("Pagination")]
-        public async Task<IActionResult> DatePagnation(int page=1 , int pageSize=10 )
-        {
-            var PageDetails= await dateSevice.GetPagedAsync(page, pageSize);
-
-            return Ok(new ApiResponse<PageResult<AppDateDto>>( true,PageDetails)
-            );
-        }
-
+      return Ok(matchingDates);
 
     }
+
+    [HttpGet("AllBookingDate")]
+    public async Task< ActionResult> AllBookingDate()
+    {
+
+        var bookings = await dateSevice.GetAllBookingsAsync();
+        return Ok(new ApiResponse(true, new { bookings }));
+    }
+
+    [HttpGet ("Pagination")]
+    public async Task<IActionResult> DatePagnation(int page=1 , int pageSize=10 )
+    {
+        var PageDetails= await dateSevice.GetPagedAsync(page, pageSize);
+
+        return Ok(new ApiResponse<PageResult<AppDateDto>>( true,PageDetails)
+        );
+    }
+
+
 }

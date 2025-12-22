@@ -1,4 +1,4 @@
-using AuthenticationProject.Model;
+using TimeOfEnter.Model;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -10,9 +10,12 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json;
 using TimeOfEnter.DateTimeMiddlleWare;
+using TimeOfEnter.Helper;
+using TimeOfEnter.Middleware;
 using TimeOfEnter.Model;
 using TimeOfEnter.Repository;
 using TimeOfEnter.Service;
+using TimeOfEnter.Validation;
 
 namespace TimeOfEnter
 {
@@ -53,7 +56,8 @@ namespace TimeOfEnter
                     ValidAudience = builder.Configuration["JWT:AudienceIP"],
                     IssuerSigningKey =
                         new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecritKey"]))
+                            Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecritKey"])),
+                    ClockSkew=TimeSpan.Zero
                 };
             });
 
@@ -64,13 +68,19 @@ namespace TimeOfEnter
                     options.JsonSerializerOptions.Converters.Add(new NullableDateTimeConverter());
 
                 });
+            builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT"));
 
             builder.Services.AddFluentValidationAutoValidation();
             builder.Services.AddValidatorsFromAssemblyContaining<DateValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<AddUserRole>();
+            builder.Services.AddValidatorsFromAssemblyContaining<LoginValid>();
+            builder.Services.AddValidatorsFromAssemblyContaining<RegisterValid>();
 
             builder.Services.AddScoped<IDateRepository, DateRepository>();
 
             builder.Services.AddScoped<IDateService, DateService>();
+            builder.Services.AddScoped<IAccountService, AccountService>();
+
 
             builder.Services.AddSwaggerGen(swagger =>
             {
@@ -115,6 +125,8 @@ namespace TimeOfEnter
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            app.UseMiddleware<GlobalExceptionMiddleware>();
+
 
             app.UseAuthorization();
 

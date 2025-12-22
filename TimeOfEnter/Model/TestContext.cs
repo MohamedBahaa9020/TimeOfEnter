@@ -1,4 +1,4 @@
-﻿using AuthenticationProject.Model;
+﻿using TimeOfEnter.Model;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 

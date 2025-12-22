@@ -1,107 +1,105 @@
-﻿using AuthenticationProject.Model;
+﻿using TimeOfEnter.Model;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using TimeOfEnter.Common.Responses;
 using TimeOfEnter.DTO;
+using TimeOfEnter.Helper;
+using TimeOfEnter.Service;
 
-namespace AuthenticationProject.Controllers
+namespace TimeOfEnter.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class AccountController(IAccountService accountService, IOptions<JWT> jwt) : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class AccountController : ControllerBase
+    private readonly JWT jwt = jwt.Value;
+
+    [HttpPost("Register")]
+    public async Task<IActionResult> Register([FromBody]RegisterDto registerDto)
     {
-        private readonly UserManager<AppUser> userManager;
-        private readonly IConfiguration configuration;
 
-        public AccountController(UserManager<AppUser> userManager , IConfiguration configuration)
+        var result = await accountService.RegisterAsync(registerDto);
+
+        if (!result.IsAuthenticated)
         {
-            this.userManager = userManager;
-            this.configuration = configuration;
+            return BadRequest(result.Massage);
+
+           
         }
-        [HttpPost("Register")]
-        public async Task<IActionResult> Register(RegisterDto registerDto)
-        {
-            if (ModelState.IsValid) {
-            AppUser appUser = new AppUser();
+        return Ok(result);
 
-                appUser.UserName = registerDto.UserName;
-                appUser.Email = registerDto.Email;
-                
-                IdentityResult result = await userManager.CreateAsync(appUser,registerDto.Password);
-
-                if (result.Succeeded) {
-                    return Ok("Created");
-                
-                }
-
-                foreach (var item in result.Errors)
-                {
-                    ModelState.AddModelError("", item.Description);
-                }
-            }
-            return BadRequest(ModelState);
-        }
-        [HttpPost("Login")]
-        public async Task<IActionResult> Login(LoginDto loginDto)
-        {
-            if (ModelState.IsValid)
-            {
-                AppUser appUser = await userManager.FindByEmailAsync(loginDto.Email);
-
-                if (appUser != null) { 
-                
-                    bool found = await userManager.CheckPasswordAsync(appUser, loginDto.Password);
-
-                    if (found) { 
-
-                        List<Claim>claims = new List<Claim>();
-
-                        claims.Add(new Claim(JwtRegisteredClaimNames.Jti,Guid.NewGuid().ToString()));
-                        claims.Add(new Claim(ClaimTypes.NameIdentifier,appUser.Id));
-                        claims.Add(new Claim(ClaimTypes.Email, appUser.Email));
-
-                        var userRole = await userManager.GetRolesAsync(appUser);
-
-                        foreach (var item in userRole)
-                        {
-                            claims.Add(new Claim(ClaimTypes.Role, item));
-                        }
-
-                        var signKey = new SymmetricSecurityKey (Encoding.UTF8.GetBytes("fkagjsjjgjfjakkj1356563#fnkldfds"));
-
-                        var signingCred = new SigningCredentials(signKey, SecurityAlgorithms.HmacSha256);
-
-                        JwtSecurityToken jwtSecurity = new JwtSecurityToken(
-                            audience: configuration["JWT:AudienceIP"],
-                            issuer: configuration["JWT:IssuerIP"],
-                            expires:DateTime.Now.AddDays(1),
-                            claims:claims,
-                            signingCredentials: signingCred 
-
-                            );
-
-                        return Ok(new
-                        {
-                            Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurity),
-                            Expiration = DateTime.Now.AddHours(1)
-                        });
-
-
-
-
-                    
-                    }
-                
-                }
-
-                ModelState.AddModelError("Email", "Email OR Password  Invalid");
-            }
-            return BadRequest(ModelState);
-
-        }
     }
+    [HttpPost("Login")]
+    public async Task<IActionResult> Login(LoginDto loginDto)
+    {
+        var token = await accountService.LoginAsync(loginDto);
+
+        if (token != null)
+        {
+
+            return Ok(token);
+        }
+
+        return BadRequest("Email or Password Invalid");
+
+    }
+    
+    [HttpPost("Addrole")]
+    public async Task<IActionResult> AddNewUserRole(AddRole add)
+    {
+        var result = await accountService.AddRoleAsync(add);
+        if (result.IsNullOrEmpty())
+            return BadRequest("Failed to add role to user");
+        return Ok(result);
+
+    }
+
+    [HttpGet("GetToken")]
+    public async Task<IActionResult> GetRefreshAndAccsessToken([FromBody] string refreshToken)
+    {
+        var result = await accountService.RefreshTokenAsync(refreshToken);
+
+        if (!result.IsAuthenticated) { 
+        
+        return BadRequest(result);
+        }
+        return Ok(result);
+
+    }
+
+    [HttpPost("revokeToken")]
+    public async Task<IActionResult>RevokeRefreshToken([FromBody] string token)
+    {
+        var refreshToken = await accountService.RevokeTokenAsync(token);
+
+        if (string.IsNullOrEmpty(token))
+        {
+            return BadRequest("Token is required");
+        }
+
+        if (!refreshToken)
+        {
+            return BadRequest("Token is invalid!");
+        }
+        return Ok("Revoked Successfully");
+    }
+
+    //private void SetRefreshTokenInCookie(string refreshToken, DateTime expires)
+    //{
+    //    var cookieOption = new CookieOptions
+    //    {
+    //        HttpOnly = true,
+    //        Expires = expires
+    //    };
+    //    Response.Cookies.Append("refreshToken", refreshToken, cookieOption);
+    //}
+
 }
