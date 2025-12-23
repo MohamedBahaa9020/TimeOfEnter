@@ -3,6 +3,7 @@
     public sealed record AppDateDto(
       int Id,
       DateTime StartTime,
-      DateTime? EndTime
+      DateTime? EndTime,
+       bool IsActive
   );
 }

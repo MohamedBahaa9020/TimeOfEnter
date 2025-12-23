@@ -17,7 +17,7 @@ namespace TimeOfEnter.Controllers;
 [ApiController]
 public class EnterController(IDateService dateSevice) : ControllerBase
 {
-    [Authorize]
+    //[Authorize]
     [HttpPost]
     public async Task<IActionResult> UserDate(TimeOfBookingWithoutId dto)
     { 
@@ -40,7 +40,7 @@ public class EnterController(IDateService dateSevice) : ControllerBase
     }
 
     [HttpGet("AllBookingDate")]
-    public async Task< ActionResult> AllBookingDate()
+    public async Task<IActionResult> AllBookingDate()
     {
 
         var bookings = await dateSevice.GetAllBookingsAsync();

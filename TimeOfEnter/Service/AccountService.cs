@@ -15,18 +15,11 @@ using TimeOfEnter.Model;
 
 namespace TimeOfEnter.Service
 {
-    public class AccountService:IAccountService
+    public class AccountService(UserManager<AppUser> userManager, IOptions<JWT> jwt,
+        RoleManager<IdentityRole> roleManager) : IAccountService
     {
-        private readonly UserManager<AppUser> userManager;
-        private readonly RoleManager<IdentityRole> roleManager;
-        private readonly JWT jwt;
+        private readonly JWT jwt = jwt.Value;
 
-        public AccountService(UserManager<AppUser> userManager, IOptions<JWT> jwt,RoleManager<IdentityRole> roleManager)
-        {
-            this.userManager = userManager;
-            this.roleManager = roleManager;
-            this.jwt = jwt.Value;
-        }
         public async Task<TokenDto> RegisterAsync(RegisterDto registerDto)
         {
             var TokenDto = new TokenDto();
@@ -59,7 +52,7 @@ namespace TimeOfEnter.Service
                 if (!result.Succeeded)
                 {
                 TokenDto.IsAuthenticated = false;
-                TokenDto.Massage = "Something Wrong Try Register Again";
+                TokenDto.Massage = "Password is Week Must Contain Upper and numbers ";
                 return TokenDto;
                 }
 
@@ -75,6 +68,7 @@ namespace TimeOfEnter.Service
 
             return new TokenDto
             {
+                Massage="Register Succucessfully",
                 IsAuthenticated = true,
                 AccessToken = tokenString,
                 AccessTokenExpiresOn = validTo,
@@ -105,6 +99,7 @@ namespace TimeOfEnter.Service
 
                 return new TokenDto
                 {
+                    Massage= "Login Succucessfully",
                     IsAuthenticated = true,
                     AccessToken = tokenString,
                     AccessTokenExpiresOn = validTo,
@@ -115,12 +110,14 @@ namespace TimeOfEnter.Service
             }
             else
             {
+
                 var refreshToken = GetRefreshToken();
                 appUser.RefreshTokens.Add(refreshToken);
                 await userManager.UpdateAsync(appUser);
 
                 return new TokenDto
                 {
+                    Massage = "Login Succucessfully",
                     IsAuthenticated = true,
                     AccessToken = tokenString,
                     AccessTokenExpiresOn = validTo,

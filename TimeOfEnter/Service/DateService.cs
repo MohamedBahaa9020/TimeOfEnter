@@ -6,15 +6,9 @@ using TimeOfEnter.Repository;
 
 namespace TimeOfEnter.Service
 {
-    public class DateService: IDateService
+    public class DateService(IDateRepository dateRepository) : IDateService
     {
-        private readonly IDateRepository dateRepository;
-
-        public DateService(IDateRepository dateRepository)
-        {
-            this.dateRepository = dateRepository;
-        }
-
+      
         public async Task AddBookingAsync(TimeOfBookingWithoutId dto)
         {
             var allDates = await dateRepository.GetAllasync();
@@ -32,7 +26,8 @@ namespace TimeOfEnter.Service
             {
 
                 StartTime = dto.StartTime,
-                EndTime = dto.EndTime
+                EndTime = dto.EndTime,
+                IsActive=true
 
             };
 
@@ -43,7 +38,7 @@ namespace TimeOfEnter.Service
         }
         public async Task<List<Date>> GetAvailableNowAsync()
         {
-            var requestedTime = DateTime.Now;
+            var requestedTime = DateTime.UtcNow;
             var allDates = await dateRepository.GetAllasync();
             return allDates
            .Where(d => requestedTime >= d.StartTime && requestedTime <= d.EndTime)
@@ -53,15 +48,17 @@ namespace TimeOfEnter.Service
         public async Task<List<AppDateDto>> GetAllBookingsAsync()
         {
             var allDates = await dateRepository.GetAllasync();
+            
+            
            return allDates
-            .Select(d => new AppDateDto(d.Id, d.StartTime,d.EndTime!.Value)).ToList();
+            .Select(d => new AppDateDto(d.Id, d.StartTime,d.EndTime!.Value,d.IsActive)).ToList();
            
         }
         public async Task<PageResult<AppDateDto>> GetPagedAsync(int page, int pageSize)
         {
             var allDates = await dateRepository.GetAllasync();
             var bookings = allDates
-                .Select(d => new AppDateDto(d.Id, d.StartTime, d.EndTime)).ToList();
+                .Select(d => new AppDateDto(d.Id, d.StartTime, d.EndTime,d.IsActive)).ToList();
 
             var skip = (page - 1) * pageSize;
             var pageDates = bookings.Skip(skip).Take(pageSize).ToList();

@@ -4,15 +4,8 @@ using TimeOfEnter.Model;
 
 namespace TimeOfEnter.Repository
 {
-    public class DateRepository:IDateRepository
-    {
-        private readonly TestContext context;
-
-        public DateRepository(TestContext context)
-        {
-            this.context = context;
-        }
-
+    public class DateRepository(TestContext context) : IDateRepository
+    { 
         public async Task< List<Date>> GetAllasync()
         {
             return await context.Dates.ToListAsync();
@@ -23,10 +16,16 @@ namespace TimeOfEnter.Repository
            await context.AddAsync(RegisterData);
 
         }
-
+        public async Task DeleteRangeAsync(List<Date> dates)
+        {
+           context.Dates.RemoveRange(dates);
+           await  SaveAsync();
+        }
         public async Task SaveAsync()
         {
            await context.SaveChangesAsync();
         }
+
+      
     }
 }

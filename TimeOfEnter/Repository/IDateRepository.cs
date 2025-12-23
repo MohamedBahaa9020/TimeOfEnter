@@ -6,7 +6,7 @@ namespace TimeOfEnter.Repository
     {
         Task <List<Date>> GetAllasync();
         Task Addasync(Date   RegisterData);
-
+        Task DeleteRangeAsync(List<Date> dates);
         Task SaveAsync();
     }
 }

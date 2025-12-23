@@ -16,6 +16,10 @@ using TimeOfEnter.Model;
 using TimeOfEnter.Repository;
 using TimeOfEnter.Service;
 using TimeOfEnter.Validation;
+using Hangfire;
+using Hangfire.SqlServer;
+
+
 
 namespace TimeOfEnter
 {
@@ -68,6 +72,15 @@ namespace TimeOfEnter
                     options.JsonSerializerOptions.Converters.Add(new NullableDateTimeConverter());
 
                 });
+
+            builder.Services.AddHangfire(config =>
+            {
+                config.UseSqlServerStorage(
+                    builder.Configuration.GetConnectionString("cs"));
+            });
+
+            builder.Services.AddHangfireServer();
+
             builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT"));
 
             builder.Services.AddFluentValidationAutoValidation();
@@ -80,6 +93,8 @@ namespace TimeOfEnter
 
             builder.Services.AddScoped<IDateService, DateService>();
             builder.Services.AddScoped<IAccountService, AccountService>();
+            builder.Services.AddScoped<CleanNunActiveDateService>();
+            builder.Services.AddScoped<UpdateActivationOfDateService>();
 
 
             builder.Services.AddSwaggerGen(swagger =>
@@ -119,6 +134,9 @@ namespace TimeOfEnter
 
             var app = builder.Build();
 
+            app.UseHangfireDashboard("/hangfire");
+
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
@@ -127,7 +145,17 @@ namespace TimeOfEnter
             }
             app.UseMiddleware<GlobalExceptionMiddleware>();
 
-
+            RecurringJob.AddOrUpdate<CleanNunActiveDateService>(
+                "clean-non-active-dates",
+                 service => service.DeleteNunActiveDate(),
+                 Cron.Minutely
+                 );
+            RecurringJob.AddOrUpdate<UpdateActivationOfDateService>(
+                "update-activation-date",
+                 service => service.UpdateDate(),
+                 Cron.Minutely
+                 );
+            app.UseRouting();
             app.UseAuthorization();
 
 
