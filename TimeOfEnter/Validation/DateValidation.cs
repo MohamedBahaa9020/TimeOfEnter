@@ -1,13 +1,12 @@
 ﻿using FluentValidation;
 using TimeOfEnter.DTO;
-using TimeOfEnter.Model;
 
 public class DateValidator : AbstractValidator<TimeOfBookingWithoutId>
 {
     public DateValidator()
     {
         RuleFor(user => user)
-            .Must(user => user.EndTime.Date > user.StartTime.Date||(user.StartTime.Date == user.EndTime.Date &&
+            .Must(user => user.EndTime.Date > user.StartTime.Date || (user.StartTime.Date == user.EndTime.Date &&
                 user.EndTime.TimeOfDay > user.StartTime.TimeOfDay))
             .WithMessage("Start time must be before End time");
 
@@ -15,11 +14,11 @@ public class DateValidator : AbstractValidator<TimeOfBookingWithoutId>
             .GreaterThan(DateTime.UtcNow)
             .WithMessage("Start time must After Now");
 
-        RuleFor(user=> user)
-            .Must(user=> (user.EndTime - user.StartTime).TotalMinutes >= 15)
+        RuleFor(user => user)
+            .Must(user => (user.EndTime - user.StartTime).TotalMinutes >= 15)
             .WithMessage("Time between EndTime and StartTime must be more than 15 min");
     }
 
-  
+
 }
 

@@ -10,7 +10,7 @@ namespace TimeOfEnter.Model
         public bool IsExpired => DateTime.UtcNow >= ExpireON;
         public DateTime CreatedOn { get; set; }
         public DateTime? RevokedOn { get; set; }
-        public bool IsActive => RevokedOn == null && !IsExpired ;
+        public bool IsActive => RevokedOn == null && !IsExpired;
 
     }
 }

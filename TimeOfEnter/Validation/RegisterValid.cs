@@ -1,10 +1,9 @@
 ﻿using FluentValidation;
-using FluentValidation.AspNetCore;
 using TimeOfEnter.DTO;
 
 namespace TimeOfEnter.Validation
 {
-    public class RegisterValid: AbstractValidator<RegisterDto>
+    public class RegisterValid : AbstractValidator<RegisterDto>
     {
         public RegisterValid()
         {

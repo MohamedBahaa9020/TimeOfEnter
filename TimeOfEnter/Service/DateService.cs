@@ -1,5 +1,4 @@
 ﻿using TimeOfEnter.Common.Pagination;
-using TimeOfEnter.Controllers;
 using TimeOfEnter.DTO;
 using TimeOfEnter.Model;
 using TimeOfEnter.Repository;
@@ -8,7 +7,7 @@ namespace TimeOfEnter.Service
 {
     public class DateService(IDateRepository dateRepository) : IDateService
     {
-      
+
         public async Task AddBookingAsync(TimeOfBookingWithoutId dto)
         {
             var allDates = await dateRepository.GetAllasync();
@@ -27,14 +26,14 @@ namespace TimeOfEnter.Service
 
                 StartTime = dto.StartTime,
                 EndTime = dto.EndTime,
-                IsActive=true
+                IsActive = true
 
             };
 
             await dateRepository.Addasync(booking);
             await dateRepository.SaveAsync();
 
-          
+
         }
         public async Task<List<Date>> GetAvailableNowAsync()
         {
@@ -43,22 +42,22 @@ namespace TimeOfEnter.Service
             return allDates
            .Where(d => requestedTime >= d.StartTime && requestedTime <= d.EndTime)
            .ToList();
-  
+
         }
         public async Task<List<AppDateDto>> GetAllBookingsAsync()
         {
             var allDates = await dateRepository.GetAllasync();
-            
-            
-           return allDates
-            .Select(d => new AppDateDto(d.Id, d.StartTime,d.EndTime!.Value,d.IsActive)).ToList();
-           
+
+
+            return allDates
+             .Select(d => new AppDateDto(d.Id, d.StartTime, d.EndTime!.Value, d.IsActive)).ToList();
+
         }
         public async Task<PageResult<AppDateDto>> GetPagedAsync(int page, int pageSize)
         {
             var allDates = await dateRepository.GetAllasync();
             var bookings = allDates
-                .Select(d => new AppDateDto(d.Id, d.StartTime, d.EndTime,d.IsActive)).ToList();
+                .Select(d => new AppDateDto(d.Id, d.StartTime, d.EndTime, d.IsActive)).ToList();
 
             var skip = (page - 1) * pageSize;
             var pageDates = bookings.Skip(skip).Take(pageSize).ToList();
@@ -67,6 +66,6 @@ namespace TimeOfEnter.Service
             return new PageResult<AppDateDto>(page, pageSize, totalPages, countItem, bookings);
         }
 
- 
+
     }
 }

@@ -9,9 +9,9 @@ public class UpdateActivationOfDateService(IDateRepository dateRepository)
         var allDates = await dateRepository.GetAllasync();
         if (allDates.Any(d => d.EndTime <= DateTime.UtcNow))
         {
-         allDates.ForEach(d=>d.IsActive = false);
-        
-         await dateRepository.SaveAsync();
+            allDates.ForEach(d => d.IsActive = false);
+
+            await dateRepository.SaveAsync();
         }
     }
 

@@ -3,7 +3,7 @@ using TimeOfEnter.DTO;
 
 namespace TimeOfEnter.Validation
 {
-    public class LoginValid:AbstractValidator<LoginDto>
+    public class LoginValid : AbstractValidator<LoginDto>
     {
         public LoginValid()
         {
