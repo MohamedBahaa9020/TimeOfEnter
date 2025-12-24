@@ -2,9 +2,9 @@
 using TimeOfEnter.Common.Pagination;
 using TimeOfEnter.Common.Responses;
 using TimeOfEnter.DTO;
-using TimeOfEnter.Service;
+using TimeOfEnter.Service.Interfaces;
 
-namespace TimeOfEnter.Controllers;
+namespace TimeOfEnter.Controllers.Enter;
 
 [Route("api/[controller]")]
 [ApiController]

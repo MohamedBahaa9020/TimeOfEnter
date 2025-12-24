@@ -1,18 +1,17 @@
 ﻿using FluentValidation;
 using TimeOfEnter.DTO;
 
-namespace TimeOfEnter.Validation
+namespace TimeOfEnter.Validation;
+public class AddUserRoleValidator : AbstractValidator<AddRole>
 {
-    public class AddUserRoleValidator : AbstractValidator<AddRole>
+    public AddUserRoleValidator()
     {
-        public AddUserRoleValidator()
-        {
-            RuleFor(x => x.UserId).NotEmpty()
-                .WithMessage("UserId is Required");
-            RuleFor(x => x.UserId).NotEmpty()
-                .WithMessage("Role is Required");
+        RuleFor(x => x.UserId).NotEmpty()
+            .WithMessage("UserId is Required");
+        RuleFor(x => x.UserId).NotEmpty()
+            .WithMessage("Role is Required");
 
 
-        }
     }
+
 }

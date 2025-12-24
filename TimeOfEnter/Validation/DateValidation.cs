@@ -1,13 +1,14 @@
 ﻿using FluentValidation;
 using TimeOfEnter.DTO;
 
+namespace TimeOfEnter.Validation;
 public class DateValidator : AbstractValidator<TimeOfBookingWithoutId>
 {
     public DateValidator()
     {
         RuleFor(user => user)
-            .Must(user => user.EndTime.Date > user.StartTime.Date || (user.StartTime.Date == user.EndTime.Date &&
-                user.EndTime.TimeOfDay > user.StartTime.TimeOfDay))
+            .Must(user => user.EndTime.Date > user.StartTime.Date || user.StartTime.Date == user.EndTime.Date &&
+                user.EndTime.TimeOfDay > user.StartTime.TimeOfDay)
             .WithMessage("Start time must be before End time");
 
         RuleFor(user => user.StartTime)
@@ -21,4 +22,3 @@ public class DateValidator : AbstractValidator<TimeOfBookingWithoutId>
 
 
 }
-

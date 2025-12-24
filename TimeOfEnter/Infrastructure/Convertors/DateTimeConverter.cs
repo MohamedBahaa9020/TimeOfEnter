@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace TimeOfEnter.DateTimeMiddlleWare;
+namespace TimeOfEnter.Infrastructure.Convertors;
 
 public class DateTimeConverter : JsonConverter<DateTime>
 {

@@ -1,10 +1,12 @@
+using TimeOfEnter;
+using TimeOfEnter.Infrastructure.Middleware;
+using TimeOfEnter.Jobs;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDependencyInjection(builder.Configuration);
 
 var app = builder.Build();
-
-app.UseHangfireDashboard("/hangfire");
 
 if (app.Environment.IsDevelopment())
 {
@@ -14,16 +16,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
-RecurringJob.AddOrUpdate<ICleanNoneActiveDateService>(
-    "clean-non-active-dates",
-        service => service.DeleteNunActiveDate(),
-        Cron.Minutely
-        );
-RecurringJob.AddOrUpdate<UpdateActivationOfDateService>(
-    "update-activation-date",
-        service => service.UpdateDate(),
-        Cron.Minutely
-        );
+var recurringJobManager = app.Services.GetRequiredService<IRecurringJobManager>();
+HangfireJobs.RegisterJobs(recurringJobManager);
+app.UseHangfireDashboard("/hangfire");
 
 app.UseRouting();
 app.UseAuthorization();

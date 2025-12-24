@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
 using TimeOfEnter.DTO;
-using TimeOfEnter.Service;
+using TimeOfEnter.Service.Interfaces;
 
-namespace TimeOfEnter.Controllers;
+namespace TimeOfEnter.Controllers.Account;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -19,7 +18,6 @@ public class AccountController(IAccountService accountService) : ControllerBase
         {
             return BadRequest(result.Massage);
 
-
         }
         return Ok(result);
 
@@ -29,13 +27,13 @@ public class AccountController(IAccountService accountService) : ControllerBase
     {
         var token = await accountService.LoginAsync(loginDto);
 
-        if (token != null)
+        if (token.IsAuthenticated)
         {
 
             return Ok(token);
         }
 
-        return BadRequest("Email or Password Invalid");
+        return Unauthorized(token);
 
     }
 
@@ -43,13 +41,13 @@ public class AccountController(IAccountService accountService) : ControllerBase
     public async Task<IActionResult> AddNewUserRole(AddRole add)
     {
         var result = await accountService.AddRoleAsync(add);
-        if (result.IsNullOrEmpty())
-            return BadRequest("Failed to add role to user");
-        return Ok(result);
+        if (!result.Success)
+            return BadRequest(result.Message);
 
+        return Ok(result);
     }
 
-    [HttpGet("GetToken")]
+    [HttpPost("GetToken")]
     public async Task<IActionResult> GetRefreshAndAccsessToken([FromBody] string refreshToken)
     {
         var result = await accountService.RefreshTokenAsync(refreshToken);
@@ -63,7 +61,7 @@ public class AccountController(IAccountService accountService) : ControllerBase
 
     }
 
-    [HttpPost("revokeToken")]
+    [HttpPost("Logout")]
     public async Task<IActionResult> RevokeRefreshToken([FromBody] string token)
     {
         var refreshToken = await accountService.RevokeTokenAsync(token);

@@ -1,6 +1,5 @@
-﻿namespace TimeOfEnter.Helper;
-
-public class JWT
+﻿namespace TimeOfEnter.Infrastructure.Helper;
+public class JwtOptions
 {
     public required string SecritKey { get; set; }
     public required string AudienceIP { get; set; }

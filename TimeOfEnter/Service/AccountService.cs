@@ -7,34 +7,39 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using TimeOfEnter.DTO;
-using TimeOfEnter.Helper;
-using TimeOfEnter.Model;
+using TimeOfEnter.Infrastructure.Helper;
+using TimeOfEnter.Service.Interfaces;
+using static TimeOfEnter.Common.Responses.RoleResponse;
 
 namespace TimeOfEnter.Service;
-
-public class AccountService(UserManager<AppUser> userManager, IOptions<JWT> jwt,
+public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOptions> jwtOptions,
     RoleManager<IdentityRole> roleManager) : IAccountService
 {
-    private readonly JWT jwt = jwt.Value;
-
+    private readonly JwtOptions jwtOptions = jwtOptions.Value;
     public async Task<TokenDto> RegisterAsync(RegisterDto registerDto)
     {
-        var TokenDto = new TokenDto();
-
         if (await userManager.FindByEmailAsync(registerDto.Email) is not null)
 
             return new TokenDto
-            {
-                IsAuthenticated = false,
-                Massage = "Email is already registered!"
-            };
+            (
+                IsAuthenticated:false,
+                Massage:"Email is already registered!",
+                AccessToken:"",
+                AccessTokenExpiresOn:null,
+                RefreshToken:"",
+                RefreshTokenExpiresOn:null
+            );
 
         if (await userManager.FindByNameAsync(registerDto.UserName) is not null)
             return new TokenDto
-            {
-                IsAuthenticated = false,
-                Massage = "Username is already registered!"
-            };
+            (
+                IsAuthenticated:false,
+                Massage:"Username is already registered!",
+                AccessToken: "",
+                AccessTokenExpiresOn: null,
+                RefreshToken: "",
+                RefreshTokenExpiresOn: null
+            );
 
         var appUser = new AppUser
         {
@@ -45,9 +50,16 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JWT> jwt,
         var result = await userManager.CreateAsync(appUser, registerDto.Password);
         if (!result.Succeeded)
         {
-            TokenDto.IsAuthenticated = false;
-            TokenDto.Massage = "Password is Week Must Contain Upper and numbers ";
-            return TokenDto;
+            
+            return new TokenDto(
+                IsAuthenticated:false,
+                Massage: "Password is Week must contain uppercase letters, numbers, and special characters.",
+                AccessToken: "",
+                AccessTokenExpiresOn: null,
+                RefreshToken: "",
+                RefreshTokenExpiresOn: null
+                );
+
         }
 
         var jwtSecurity = await CreateJwtToken(appUser);
@@ -73,98 +85,126 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JWT> jwt,
 
     public async Task<TokenDto> LoginAsync(LoginDto loginDto)
     {
-        AppUser appUser = await userManager.FindByEmailAsync(loginDto.Email);
-        if (appUser == null) return null;
+        AppUser? appUser = await userManager.FindByEmailAsync(loginDto.Email);
+        if (appUser == null) return new TokenDto(
+                IsAuthenticated: false,
+                Massage: "Email or Password Invalid",
+                AccessToken: "",
+                AccessTokenExpiresOn: null,
+                RefreshToken: "",
+                RefreshTokenExpiresOn: null
+                );
 
         bool found = await userManager.CheckPasswordAsync(appUser, loginDto.Password);
-        if (!found) return null;
+        if (!found)
+            return new TokenDto(
+                IsAuthenticated: false,
+                Massage: "Email or Password Invalid",
+                AccessToken: "",
+                AccessTokenExpiresOn: null,
+                RefreshToken: "",
+                RefreshTokenExpiresOn: null
+                );
 
         var jwtSecurity = await CreateJwtToken(appUser);
 
         var tokenString = new JwtSecurityTokenHandler().WriteToken(jwtSecurity);
         var validTo = jwtSecurity.ValidTo;
 
-        if (appUser.RefreshTokens.Any(t => t.IsActive))
+        if (appUser.RefreshTokens != null && appUser.RefreshTokens.Any(t => t.IsActive))
         {
             var activeRefreshToken = appUser.RefreshTokens.FirstOrDefault(a => a.IsActive);
 
             return new TokenDto
-            {
-                Massage = "Login Succucessfully",
-                IsAuthenticated = true,
-                AccessToken = tokenString,
-                AccessTokenExpiresOn = validTo,
-                RefreshToken = activeRefreshToken.Token,
-                RefreshTokenExpiresOn = activeRefreshToken.ExpireON
-            };
+            (
+                Massage:"Login Succucessfully",
+                IsAuthenticated:true,
+                AccessToken:tokenString,
+                AccessTokenExpiresOn:validTo,
+                RefreshToken:activeRefreshToken!.Token,
+                RefreshTokenExpiresOn:activeRefreshToken.ExpireON
+            );
         }
         else
         {
             var refreshToken = GetRefreshToken();
+            appUser.RefreshTokens ??= [];
             appUser.RefreshTokens.Add(refreshToken);
             await userManager.UpdateAsync(appUser);
 
             return new TokenDto
-            {
-                Massage = "Login Succucessfully",
-                IsAuthenticated = true,
-                AccessToken = tokenString,
-                AccessTokenExpiresOn = validTo,
-                RefreshToken = refreshToken.Token,
-                RefreshTokenExpiresOn = refreshToken.ExpireON
-            };
+            (
+                Massage:"Login Succucessfully",
+                IsAuthenticated:true,
+                AccessToken:tokenString,
+                AccessTokenExpiresOn:validTo,
+                RefreshToken:refreshToken.Token,
+                RefreshTokenExpiresOn:refreshToken.ExpireON
+            );
         }
     }
 
-    public async Task<string> AddRoleAsync(AddRole addRole)
+    public async Task<RoleResult> AddRoleAsync(AddRole addRole)
     {
         var user = await userManager.FindByIdAsync(addRole.UserId);
 
         if (user == null || !await roleManager.RoleExistsAsync(addRole.Role))
-            return "Invalid user ID or Role";
+            return new RoleResult(false, "Invalid user ID or Role");
 
         if (await userManager.IsInRoleAsync(user, addRole.Role))
-            return "User already assigned to this role";
+            return new RoleResult(false, "User already assigned to this role");
 
         var result = await userManager.AddToRoleAsync(user, addRole.Role);
 
-        if (!result.Succeeded)
-            return string.Empty;
-
-        return "Role added successfully";
-
+        return !result.Succeeded ? new RoleResult(false, "Failed to add role to user") : new RoleResult(true, "Role added successfully");
     }
     public async Task<TokenDto> RefreshTokenAsync(string token)
     {
-        var TokenDto = new TokenDto();
+        var user = await userManager.Users.SingleOrDefaultAsync(u => u!.RefreshTokens!.Any(t => t.Token == token));
 
-        var user = await userManager.Users.SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == token));
-
-        if (user == null)
+        if (user == null || user.RefreshTokens is null)
         {
-            TokenDto.Massage = "Invalid token";
-            return TokenDto;
+            return new TokenDto(
+                IsAuthenticated:false,
+                Massage: "Invalid token",
+                AccessToken: "",
+                AccessTokenExpiresOn: null,
+                RefreshToken: "",
+                RefreshTokenExpiresOn: null
+                );
         }
 
         var refreshToken = user.RefreshTokens.Single(t => t.Token == token);
 
         if (!refreshToken.IsActive)
         {
-            TokenDto.Massage = "InActive token";
-            return TokenDto;
+            return new TokenDto(
+                IsAuthenticated: false,
+                Massage: "InActive token",
+                AccessToken: "",
+                AccessTokenExpiresOn: null,
+                RefreshToken: "",
+                RefreshTokenExpiresOn: null);
         }
 
         refreshToken.RevokedOn = DateTime.UtcNow;
 
         var newRefreshToken = GetRefreshToken();
+        user.RefreshTokens ??= [];
         user.RefreshTokens.Add(newRefreshToken);
         await userManager.UpdateAsync(user);
         var accsessToken = await CreateJwtToken(user);
+        var tokenString = new JwtSecurityTokenHandler().WriteToken(accsessToken);
+        var validTo = accsessToken.ValidTo;
 
-        TokenDto.IsAuthenticated = true;
-        TokenDto.AccessToken = new JwtSecurityTokenHandler().WriteToken(accsessToken);
-
-        return (TokenDto);
+        return new TokenDto(
+       Massage: "Token Created Successfully",
+       IsAuthenticated: true,
+       AccessToken: tokenString,
+       AccessTokenExpiresOn: validTo,
+       RefreshToken: newRefreshToken.Token,
+       RefreshTokenExpiresOn: newRefreshToken.ExpireON
+       );
 
     }
 
@@ -186,9 +226,9 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JWT> jwt,
 
     public async Task<bool> RevokeTokenAsync(string token)
     {
-        var user = await userManager.Users.SingleOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == token));
+        var user = await userManager.Users.SingleOrDefaultAsync(u => u!.RefreshTokens!.Any(t => t.Token == token));
 
-        if (user == null)
+        if (user == null || user.RefreshTokens is null)
             return false;
 
         var refreshToken = user.RefreshTokens.Single(t => t.Token == token);
@@ -206,11 +246,12 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JWT> jwt,
     private async Task<JwtSecurityToken> CreateJwtToken(AppUser user)
     {
 
-        List<Claim> claims = new List<Claim>();
-
-        claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
-        claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id));
-        claims.Add(new Claim(ClaimTypes.Email, user.Email));
+        List<Claim> claims =
+        [
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
+            new Claim(ClaimTypes.Email, user!.Email!),
+        ];
 
         var userRole = await userManager.GetRolesAsync(user);
 
@@ -219,18 +260,18 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JWT> jwt,
             claims.Add(new Claim(ClaimTypes.Role, item));
         }
 
-        var signKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.SecritKey));
+        var signKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecritKey));
 
         var signingCred = new SigningCredentials(signKey, SecurityAlgorithms.HmacSha256);
 
-        JwtSecurityToken jwtSecurity = new JwtSecurityToken(
-            audience: jwt.AudienceIP,
-            issuer: jwt.IssuerIP,
-            expires: DateTime.UtcNow.AddMinutes(jwt.Expiration),
+        JwtSecurityToken jwtSecurity = new(
+            audience: jwtOptions.AudienceIP,
+            issuer: jwtOptions.IssuerIP,
+            expires: DateTime.UtcNow.AddMinutes(jwtOptions.Expiration),
             claims: claims,
             signingCredentials: signingCred
             );
-        return jwtSecurity;
+          return jwtSecurity;
     }
 
 }

@@ -4,7 +4,7 @@ public record TokenDto(
     string? Massage,
     bool IsAuthenticated,
     string AccessToken,
-    DateTime AccessTokenExpiresOn,
+    DateTime?AccessTokenExpiresOn,
     string RefreshToken,
-    DateTime RefreshTokenExpiresOn
+    DateTime?RefreshTokenExpiresOn
 );

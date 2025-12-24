@@ -1,16 +1,12 @@
 ﻿using TimeOfEnter.Common.Pagination;
 using TimeOfEnter.DTO;
-using TimeOfEnter.Model;
 
-
-
-namespace TimeOfEnter.Service
+namespace TimeOfEnter.Service.Interfaces;
+public interface IDateService
 {
-    public interface IDateService
-    {
-        Task AddBookingAsync(TimeOfBookingWithoutId dto);
-        Task<List<Date>> GetAvailableNowAsync();
-        Task<List<AppDateDto>> GetAllBookingsAsync();
-        Task<PageResult<AppDateDto>> GetPagedAsync(int page, int pageSize);
-    }
+    Task AddBookingAsync(TimeOfBookingWithoutId dto);
+    Task<List<Date>> GetAvailableNowAsync();
+    Task<List<AppDateDto>> GetAllBookingsAsync();
+    Task<PageResult<AppDateDto>> GetPagedAsync(int page, int pageSize);
+
 }

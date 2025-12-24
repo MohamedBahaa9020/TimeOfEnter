@@ -1,17 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace TimeOfEnter.Model
+namespace TimeOfEnter.Model;
+public class TestContext(DbContextOptions<TestContext> options) : IdentityDbContext<AppUser>(options)
 {
-    public class TestContext : IdentityDbContext<AppUser>
-    {
-        public DbSet<Date> Dates { get; set; }
-
-
-        public TestContext(DbContextOptions<TestContext> options) : base(options)
-        {
-
-        }
-
-    }
+    public DbSet<Date> Dates { get; set; }
 }

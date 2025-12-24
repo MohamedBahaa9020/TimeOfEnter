@@ -1,20 +1,17 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Runtime.CompilerServices;
 using System.Text;
-using TimeOfEnter.DateTimeMiddlleWare;
-using TimeOfEnter.Helper;
-using TimeOfEnter.Model;
+using TimeOfEnter.Infrastructure.Convertors;
+using TimeOfEnter.Infrastructure.Helper;
 using TimeOfEnter.Repository;
-using TimeOfEnter.Service;
+using TimeOfEnter.Service.Interfaces;
 
-namespace TimeOfEnter.DependencyInjection;
+namespace TimeOfEnter;
 
 public static class DependencyInjection
 {
@@ -33,7 +30,7 @@ public static class DependencyInjection
             .AddEntityFrameworkStores<TestContext>()
             .AddDefaultTokenProviders();
 
-        var jwt = configuration.GetSection("JWT").Get<JWT>();
+        var jwt = configuration.GetSection("JWT").Get<JwtOptions>();
 
         services.AddAuthentication(Options =>
         {
@@ -47,7 +44,7 @@ public static class DependencyInjection
             Options.TokenValidationParameters = new TokenValidationParameters()
             {
                 ValidateIssuer = true,
-                ValidIssuer = jwt.IssuerIP,
+                ValidIssuer = jwt!.IssuerIP,
                 ValidateAudience = true,
                 ValidAudience = jwt.AudienceIP,
                 IssuerSigningKey =
@@ -72,7 +69,7 @@ public static class DependencyInjection
 
         services.AddHangfireServer();
 
-        services.Configure<JWT>(configuration.GetSection("JWT"));
+        services.Configure<JwtOptions>(configuration.GetSection("JWT"));
 
         services.AddFluentValidation();
 
@@ -80,7 +77,7 @@ public static class DependencyInjection
         services.AddScoped<IDateService, DateService>();
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<ICleanNoneActiveDateService, CleanNoneActiveDateService>();
-        services.AddScoped<UpdateActivationOfDateService>();
+        services.AddScoped<IUpdateActivationOfDateService,UpdateActivationOfDateService>();
 
         services.AddSwaggerGen(swagger =>
         {
@@ -112,7 +109,7 @@ public static class DependencyInjection
                 Id = "Bearer"
                 }
                 },
-                new string[] {}
+                Array.Empty<string>()
                 }
                 });
         });

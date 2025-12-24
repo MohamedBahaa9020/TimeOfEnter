@@ -1,15 +1,11 @@
 ﻿using TimeOfEnter.Repository;
+using TimeOfEnter.Service.Interfaces;
 
 namespace TimeOfEnter.Service;
 
-public interface ICleanNoneActiveDateService
-{
-    Task DeleteNunActiveDate();
-}
-
 public class CleanNoneActiveDateService(IDateRepository dateRepository) : ICleanNoneActiveDateService
 {
-    public async Task DeleteNunActiveDate()
+    public async Task DeleteNoneActiveDate()
     {
         var dates = await dateRepository.GetAllasync();
 
@@ -19,10 +15,3 @@ public class CleanNoneActiveDateService(IDateRepository dateRepository) : IClean
     }
 }
 
-public class CleanNoneActiveDateJob : ICleanNoneActiveDateService
-{
-    public Task DeleteNunActiveDate()
-    {
-        throw new NotImplementedException();
-    }
-}

@@ -1,8 +1,9 @@
 ﻿using TimeOfEnter.Repository;
+using TimeOfEnter.Service.Interfaces;
 
 namespace TimeOfEnter.Service;
 
-public class UpdateActivationOfDateService(IDateRepository dateRepository)
+public class UpdateActivationOfDateService(IDateRepository dateRepository):IUpdateActivationOfDateService
 {
     public async Task UpdateDate()
     {

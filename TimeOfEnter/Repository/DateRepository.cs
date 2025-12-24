@@ -1,30 +1,26 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TimeOfEnter.Model;
 
-namespace TimeOfEnter.Repository
+namespace TimeOfEnter.Repository;
+public class DateRepository(TestContext context) : IDateRepository
 {
-    public class DateRepository(TestContext context) : IDateRepository
+    public async Task<List<Date>> GetAllasync()
     {
-        public async Task<List<Date>> GetAllasync()
-        {
-            return await context.Dates.ToListAsync();
-
-        }
-        public async Task Addasync(Date RegisterData)
-        {
-            await context.AddAsync(RegisterData);
-
-        }
-        public async Task DeleteRangeAsync(List<Date> dates)
-        {
-            context.Dates.RemoveRange(dates);
-            await SaveAsync();
-        }
-        public async Task SaveAsync()
-        {
-            await context.SaveChangesAsync();
-        }
-
+        return await context.Dates.ToListAsync();
 
     }
+    public async Task Addasync(Date RegisterData)
+    {
+        await context.AddAsync(RegisterData);
+
+    }
+    public async Task DeleteRangeAsync(List<Date> dates)
+    {
+        context.Dates.RemoveRange(dates);
+        await SaveAsync();
+    }
+    public async Task SaveAsync()
+    {
+        await context.SaveChangesAsync();
+    }
+
 }
