@@ -1,8 +1,8 @@
 ﻿using FluentValidation;
 using TimeOfEnter.DTO;
-
 namespace TimeOfEnter.Validation;
-public class AddUserRoleValidator : AbstractValidator<AddRole>
+
+public class AddUserRoleValidator : AbstractValidator<AddRoleDto>
 {
     public AddUserRoleValidator()
     {

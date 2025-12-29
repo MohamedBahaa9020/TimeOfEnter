@@ -1,8 +1,8 @@
 ﻿using FluentValidation;
 using TimeOfEnter.DTO;
-
 namespace TimeOfEnter.Validation;
-public class DateValidator : AbstractValidator<TimeOfBookingWithoutId>
+
+public class DateValidator : AbstractValidator<TimeBookingWithoutIdDto>
 {
     public DateValidator()
     {

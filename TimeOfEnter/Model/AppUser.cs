@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Identity;
-
 namespace TimeOfEnter.Model;
 
 public class AppUser : IdentityUser

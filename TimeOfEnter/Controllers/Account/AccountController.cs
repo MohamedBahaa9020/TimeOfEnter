@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using TimeOfEnter.Common.Extensions;
 using TimeOfEnter.DTO;
 using TimeOfEnter.Service.Interfaces;
-
 namespace TimeOfEnter.Controllers.Account;
 
 [Route("api/[controller]")]
@@ -11,40 +11,29 @@ public class AccountController(IAccountService accountService) : ControllerBase
     [HttpPost("Register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
     {
-
         var result = await accountService.RegisterAsync(registerDto);
 
-        if (!result.IsAuthenticated)
-        {
-            return BadRequest(result.Massage);
-
-        }
-        return Ok(result);
-
+        return result.Match(
+        success => Ok(success),
+        errors => this.Problem(errors));
     }
     [HttpPost("Login")]
     public async Task<IActionResult> Login(LoginDto loginDto)
     {
         var token = await accountService.LoginAsync(loginDto);
 
-        if (token.IsAuthenticated)
-        {
-
-            return Ok(token);
-        }
-
-        return Unauthorized(token);
-
+        return token.Match(
+           success => Ok(success),
+           errors => this.Problem(errors));
     }
 
     [HttpPost("Addrole")]
-    public async Task<IActionResult> AddNewUserRole(AddRole add)
+    public async Task<IActionResult> AddNewUserRole(AddRoleDto add)
     {
         var result = await accountService.AddRoleAsync(add);
-        if (!result.Success)
-            return BadRequest(result.Message);
-
-        return Ok(result);
+        return result.Match(
+            _ => Ok("Role added successfully"),
+            errors => this.Problem(errors));
     }
 
     [HttpPost("GetToken")]
@@ -52,13 +41,9 @@ public class AccountController(IAccountService accountService) : ControllerBase
     {
         var result = await accountService.RefreshTokenAsync(refreshToken);
 
-        if (!result.IsAuthenticated)
-        {
-
-            return BadRequest(result);
-        }
-        return Ok(result);
-
+        return result.Match(
+            success => Ok(success),
+            errors => this.Problem(errors));
     }
 
     [HttpPost("Logout")]
@@ -66,15 +51,8 @@ public class AccountController(IAccountService accountService) : ControllerBase
     {
         var refreshToken = await accountService.RevokeTokenAsync(token);
 
-        if (string.IsNullOrEmpty(token))
-        {
-            return BadRequest("Token is required");
-        }
-
-        if (!refreshToken)
-        {
-            return BadRequest("Token is invalid!");
-        }
-        return Ok("Revoked Successfully");
+        return refreshToken.Match(
+          _ => Ok("Revoked Successfully"),
+          errors => this.Problem(errors));
     }
 }

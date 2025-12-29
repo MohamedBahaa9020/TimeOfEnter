@@ -1,10 +1,10 @@
 ﻿using FluentValidation;
 using TimeOfEnter.DTO;
-
 namespace TimeOfEnter.Validation;
-public class RegisterValid : AbstractValidator<RegisterDto>
+
+public class RegisterValidator : AbstractValidator<RegisterDto>
 {
-    public RegisterValid()
+    public RegisterValidator()
     {
         RuleFor(x => x.UserName)
             .NotEmpty()

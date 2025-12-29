@@ -5,15 +5,15 @@ namespace TimeOfEnter.Jobs
     {
         public static void RegisterJobs(IRecurringJobManager recurringJobManager)
         {
-            recurringJobManager.AddOrUpdate<ICleanNoneActiveDateService>(
+            recurringJobManager.AddOrUpdate<IDateService>(
             "clean-non-active-dates",
             service => service.DeleteNoneActiveDate(),
             Cron.Daily
         );
-            recurringJobManager.AddOrUpdate<IUpdateActivationOfDateService>
+            recurringJobManager.AddOrUpdate<IDateService>
             (
             "update-activation-date",
-            service => service.UpdateDate(),
+            service => service.UpdateDateActivation(),
             Cron.Minutely
             );
         }

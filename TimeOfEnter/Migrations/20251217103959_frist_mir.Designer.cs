@@ -5,13 +5,14 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using TimeOfEnter.Model;
+using TimeOfEnter.Database;
+
 
 #nullable disable
 
 namespace TimeOfEnter.Migrations
 {
-    [DbContext(typeof(TestContext))]
+    [DbContext(typeof(DateContext))]
     [Migration("20251217103959_frist_mir")]
     partial class frist_mir
     {

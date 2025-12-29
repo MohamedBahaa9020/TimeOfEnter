@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-
 namespace TimeOfEnter.Model;
+
 [Owned]
 public class RefreshToken
 {

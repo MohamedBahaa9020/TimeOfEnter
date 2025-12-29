@@ -4,13 +4,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using TimeOfEnter.Model;
+using TimeOfEnter.Database;
+
 
 #nullable disable
 
 namespace TimeOfEnter.Migrations
 {
-    [DbContext(typeof(TestContext))]
+    [DbContext(typeof(DateContext))]
     partial class TestContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

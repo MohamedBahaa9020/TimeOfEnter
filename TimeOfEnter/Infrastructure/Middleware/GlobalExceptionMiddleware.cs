@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Net;
-
 namespace TimeOfEnter.Infrastructure.Middleware;
+
 public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
 {
     public async Task InvokeAsync(HttpContext context)

@@ -6,11 +6,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using TimeOfEnter.Database;
 using TimeOfEnter.Infrastructure.Convertors;
-using TimeOfEnter.Infrastructure.Helper;
+using TimeOfEnter.Infrastructure.Options;
 using TimeOfEnter.Repository;
 using TimeOfEnter.Service.Interfaces;
-
 namespace TimeOfEnter;
 
 public static class DependencyInjection
@@ -21,13 +21,13 @@ public static class DependencyInjection
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen();
 
-        services.AddDbContext<TestContext>(options =>
+        services.AddDbContext<DateContext>(options =>
         {
             options.UseSqlServer(configuration.GetConnectionString("cs"));
         });
 
         services.AddIdentity<AppUser, IdentityRole>()
-            .AddEntityFrameworkStores<TestContext>()
+            .AddEntityFrameworkStores<DateContext>()
             .AddDefaultTokenProviders();
 
         var jwt = configuration.GetSection("JWT").Get<JwtOptions>();
@@ -77,19 +77,14 @@ public static class DependencyInjection
         services.AddScoped<IBookingRepository, BookingRepository>();
         services.AddScoped<IDateService, DateService>();
         services.AddScoped<IAccountService, AccountService>();
-        services.AddScoped<ICleanNoneActiveDateService, CleanNoneActiveDateService>();
-        services.AddScoped<IUpdateActivationOfDateService,UpdateActivationOfDateService>();
-
         services.AddSwaggerGen(swagger =>
         {
-            //This is to generate the Default UI of Swagger Documentation
             swagger.SwaggerDoc("v1", new OpenApiInfo
             {
                 Version = "v1",
                 Title = "ASP.NET 8 Web API",
                 Description = " ITI Projrcy"
             });
-            // To Enable authorization using Swagger (JWT)
             swagger.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
             {
                 Name = "Authorization",
@@ -114,10 +109,8 @@ public static class DependencyInjection
                 }
                 });
         });
-
         return services;
     }
-
     public static IServiceCollection AddFluentValidation(this IServiceCollection services)
     {
         services.AddFluentValidationAutoValidation();

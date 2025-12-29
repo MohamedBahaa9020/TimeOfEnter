@@ -5,13 +5,14 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using TimeOfEnter.Model;
+using TimeOfEnter.Database;
+
 
 #nullable disable
 
 namespace TimeOfEnter.Migrations
 {
-    [DbContext(typeof(TestContext))]
+    [DbContext(typeof(DateContext))]
     [Migration("20251220160218_refresh_TOKEN")]
     partial class refresh_TOKEN
     {

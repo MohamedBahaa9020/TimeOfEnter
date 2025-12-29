@@ -1,4 +1,5 @@
-﻿namespace TimeOfEnter.Infrastructure.Helper;
+﻿namespace TimeOfEnter.Infrastructure.Options;
+
 public class JwtOptions
 {
     public required string SecritKey { get; set; }

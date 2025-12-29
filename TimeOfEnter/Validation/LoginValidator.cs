@@ -2,9 +2,10 @@
 using TimeOfEnter.DTO;
 
 namespace TimeOfEnter.Validation;
-public class LoginValid : AbstractValidator<LoginDto>
+
+public class LoginValidator : AbstractValidator<LoginDto>
 {
-    public LoginValid()
+    public LoginValidator()
     {
         RuleFor(x => x.Email)
           .NotEmpty().WithMessage("Email is required")
