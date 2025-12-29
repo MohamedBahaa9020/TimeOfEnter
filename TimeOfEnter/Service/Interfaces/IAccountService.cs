@@ -1,5 +1,5 @@
-﻿using TimeOfEnter.DTO;
-using static TimeOfEnter.Common.Responses.RoleResponse;
+﻿using TimeOfEnter.Common.Responses;
+using TimeOfEnter.DTO;
 
 namespace TimeOfEnter.Service.Interfaces;
 

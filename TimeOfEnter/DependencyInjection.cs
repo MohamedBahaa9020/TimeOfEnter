@@ -74,6 +74,7 @@ public static class DependencyInjection
         services.AddFluentValidation();
 
         services.AddScoped<IDateRepository, DateRepository>();
+        services.AddScoped<IBookingRepository, BookingRepository>();
         services.AddScoped<IDateService, DateService>();
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<ICleanNoneActiveDateService, CleanNoneActiveDateService>();

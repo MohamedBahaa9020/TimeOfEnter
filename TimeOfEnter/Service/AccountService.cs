@@ -6,10 +6,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using TimeOfEnter.Common.Responses;
 using TimeOfEnter.DTO;
 using TimeOfEnter.Infrastructure.Helper;
 using TimeOfEnter.Service.Interfaces;
-using static TimeOfEnter.Common.Responses.RoleResponse;
 
 namespace TimeOfEnter.Service;
 public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOptions> jwtOptions,
@@ -61,7 +61,7 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOption
                 );
 
         }
-
+        await userManager.AddToRoleAsync(appUser, "User");
         var jwtSecurity = await CreateJwtToken(appUser);
 
         var tokenString = new JwtSecurityTokenHandler().WriteToken(jwtSecurity);
@@ -148,13 +148,15 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOption
     {
         var user = await userManager.FindByIdAsync(addRole.UserId);
 
-        if (user == null || !await roleManager.RoleExistsAsync(addRole.Role))
+        var roleName = addRole.Role.Trim();
+
+        if (user == null || !await roleManager.RoleExistsAsync(roleName))
             return new RoleResult(false, "Invalid user ID or Role");
 
-        if (await userManager.IsInRoleAsync(user, addRole.Role))
+        if (await userManager.IsInRoleAsync(user, roleName))
             return new RoleResult(false, "User already assigned to this role");
 
-        var result = await userManager.AddToRoleAsync(user, addRole.Role);
+        var result = await userManager.AddToRoleAsync(user, roleName);
 
         return !result.Succeeded ? new RoleResult(false, "Failed to add role to user") : new RoleResult(true, "Role added successfully");
     }
@@ -251,6 +253,7 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOption
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(ClaimTypes.NameIdentifier, user.Id),
             new Claim(ClaimTypes.Email, user!.Email!),
+            //new Claim(ClaimTypes.Name, user!.UserName!)
         ];
 
         var userRole = await userManager.GetRolesAsync(user);
@@ -274,6 +277,10 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOption
           return jwtSecurity;
     }
 
+    Task<RoleResult> IAccountService.AddRoleAsync(AddRole addRole)
+    {
+        throw new NotImplementedException();
+    }
 }
 
 

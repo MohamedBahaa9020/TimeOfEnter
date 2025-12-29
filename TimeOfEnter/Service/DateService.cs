@@ -1,12 +1,12 @@
 ﻿using TimeOfEnter.Common.Pagination;
+using TimeOfEnter.Common.Responses;
 using TimeOfEnter.DTO;
 using TimeOfEnter.Repository;
 using TimeOfEnter.Service.Interfaces;
 
 namespace TimeOfEnter.Service;
-public class DateService(IDateRepository dateRepository) : IDateService
+public class DateService(IDateRepository dateRepository, IBookingRepository bookingRepository) : IDateService
 {
-
     public async Task AddBookingAsync(TimeOfBookingWithoutId dto)
     {
         var allDates = await dateRepository.GetAllasync();
@@ -25,8 +25,7 @@ public class DateService(IDateRepository dateRepository) : IDateService
 
             StartTime = dto.StartTime,
             EndTime = dto.EndTime,
-            IsActive = true
-
+            IsActive = true,
         };
 
         await dateRepository.Addasync(booking);
@@ -59,5 +58,30 @@ public class DateService(IDateRepository dateRepository) : IDateService
         return new PageResult<AppDateDto>(page, pageSize, totalPages, countItem, bookings);
     }
 
+    public async Task<BookingDateResponses> BookAvilableDate(string? userId)
+    {
+        var matchingDates = await GetAvailableNowAsync();
+        if (matchingDates == null||matchingDates.Count == 0)
+            return new BookingDateResponses
+                (IsActive:false,
+                 Message:"No available date at this time.",
+                 StartTime:null,
+                 EndTime:null);
+        
+        
+        var bookedDate = matchingDates.First();
+        var booking = new UserIsBooking
+        {
+            UserId = userId,
+            StartTime = bookedDate.StartTime,
+            EndTime = bookedDate.EndTime
+        };
+        await bookingRepository.AddBookingAsync(booking);
+        return new BookingDateResponses
+               (IsActive:true,
+                Message: "Booked Successfully",
+                StartTime: bookedDate.StartTime,
+                EndTime: bookedDate.EndTime);
 
+    }
 }

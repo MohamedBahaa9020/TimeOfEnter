@@ -1,8 +1,3 @@
-﻿namespace TimeOfEnter.Common.Responses
-{
-    public class RoleResponse
-    {
-        public record RoleResult(bool Success, string Message);
+﻿namespace TimeOfEnter.Common.Responses;
 
-    }
-}
+public record RoleResult(bool Success, string Message);

@@ -1,4 +1,4 @@
-﻿namespace TimeOfEnter.DTO
+﻿namespace TimeOfEnter.Common.Responses
 {
     public class TimeOfBooking
     {

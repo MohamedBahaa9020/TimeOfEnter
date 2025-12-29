@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using TimeOfEnter.Common.Pagination;
 using TimeOfEnter.Common.Responses;
 using TimeOfEnter.DTO;
@@ -7,12 +9,15 @@ using TimeOfEnter.Service.Interfaces;
 namespace TimeOfEnter.Controllers.Enter;
 
 [Route("api/[controller]")]
+[Authorize]
 [ApiController]
 public class EnterController(IDateService dateSevice) : ControllerBase
 {
-    [HttpPost]
+    //[Authorize(Roles = "Admin")]
+    [HttpPost("Add Dates")]
     public async Task<IActionResult> UserDate(TimeOfBookingWithoutId dto)
     {
+        
         await dateSevice.AddBookingAsync(dto);
 
         return Ok("Added Successfully");
@@ -41,5 +46,18 @@ public class EnterController(IDateService dateSevice) : ControllerBase
     {
         var PageDetails = await dateSevice.GetPagedAsync(page, pageSize);
         return Ok(new ApiResponse<PageResult<AppDateDto>>(true, PageDetails));
+    }
+
+    [HttpPost("Booking")]
+    public async Task<IActionResult> BookDate()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var result = await dateSevice.BookAvilableDate(userId);
+        if(!result.IsActive)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
     }
 }
