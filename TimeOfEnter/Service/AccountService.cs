@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using TimeOfEnter.Common.Responses;
 using TimeOfEnter.DTO;
+using TimeOfEnter.Errors;
 using TimeOfEnter.Infrastructure.Options;
 using TimeOfEnter.Service.Interfaces;
 namespace TimeOfEnter.Service;
@@ -125,14 +126,14 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOption
 
         if (user == null || user.RefreshTokens is null)
         {
-            return Error.NotFound(description: "Invalid token");
+            return AccountErrors.InvalidToken;
         }
 
         var refreshToken = user.RefreshTokens.Single(t => t.Token == token);
 
         if (!refreshToken.IsActive)
         {
-            return Error.NotFound(description: "InActive token");
+            return AccountErrors.InvalidToken;
         }
 
         refreshToken.RevokedOn = DateTime.UtcNow;
