@@ -50,10 +50,20 @@ public class DateController(IDateService dateSevice) : ControllerBase
     }
 
     [HttpPost("Booking")]
-    public async Task<IActionResult> BookDate()
+    public async Task<IActionResult> BookDate([FromBody] int dateId)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var result = await dateSevice.BookAvilableDate(userId);
+
+        var result = await dateSevice.BookAvilableDate(userId!, dateId);
+        return result.Match(
+            success => Ok(success),
+            errors => this.Problem(errors));
+    }
+    [HttpGet("UserBookings")]
+    public async Task<IActionResult> GetUserBookings()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var result = await dateSevice.GetAllUserBookings(userId!);
         return result.Match(
             success => Ok(success),
             errors => this.Problem(errors));

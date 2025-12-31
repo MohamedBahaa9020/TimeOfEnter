@@ -7,9 +7,10 @@ namespace TimeOfEnter.Service.Interfaces;
 public interface IDateService
 {
     Task<ErrorOr<Success>> AddBookingAsync(TimeBookingWithoutIdDto dto);
-    Task<ErrorOr<List<Date>>> GetAvailableNowAsync();
+    Task<ErrorOr<List<AppDateDto>>> GetAvailableNowAsync();
     Task<ErrorOr<List<AppDateDto>>> GetAllBookingsAsync();
-    Task<ErrorOr<BookingDateResponse>> BookAvilableDate(string? userId);
+    Task<ErrorOr<BookingDateResponse>> BookAvilableDate(string userId, int dateId);
+    Task<ErrorOr<List<UserBookingsResponse>>> GetAllUserBookings(string userId);
     Task<ErrorOr<PageResult<AppDateDto>>> GetPagedAsync(int page, int pageSize);
     Task DeleteNoneActiveDate();
     Task UpdateDateActivation();

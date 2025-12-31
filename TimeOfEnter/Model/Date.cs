@@ -6,4 +6,5 @@ public class Date
     public DateTime StartTime { get; set; }
     public DateTime? EndTime { get; set; }
     public bool IsActive { get; set; }
+    public ICollection<UserBooking> Bookings { get; set; } = [];
 }

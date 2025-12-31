@@ -1,8 +1,3 @@
 ﻿namespace TimeOfEnter.DTO;
 
-public class RegisterDto
-{
-    public required string UserName { get; set; }
-    public required string Password { get; set; }
-    public required string Email { get; set; }
-}
+public record RegisterDto(string UserName, string Password, string Email);

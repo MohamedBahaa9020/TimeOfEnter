@@ -2,6 +2,7 @@
 using TimeOfEnter.Common.Pagination;
 using TimeOfEnter.Common.Responses;
 using TimeOfEnter.DTO;
+using TimeOfEnter.Errors;
 using TimeOfEnter.Repository;
 using TimeOfEnter.Service.Interfaces;
 namespace TimeOfEnter.Service;
@@ -16,7 +17,7 @@ public class DateService(IDateRepository dateRepository, IBookingRepository book
             dto.EndTime > d.StartTime);
         if (MatchingTime)
         {
-            return Error.Conflict(description: "This Time is Already Booking");
+            return DateErrors.TimeAlreadyBooking;
         }
 
         var booking = new Date
@@ -31,23 +32,26 @@ public class DateService(IDateRepository dateRepository, IBookingRepository book
         return Result.Success;
     }
 
-    public async Task<ErrorOr<List<Date>>> GetAvailableNowAsync()
+    public async Task<ErrorOr<List<AppDateDto>>> GetAvailableNowAsync()
     {
         var requestedTime = DateTime.UtcNow;
         var allDates = await dateRepository.GetAllasync();
-        var availableDates = allDates.Where(d => requestedTime >= d.StartTime && requestedTime <= d.EndTime).ToList();
+        var availableDates = allDates.Where(d => requestedTime < d.StartTime).ToList();
         if (availableDates == null || availableDates.Count == 0)
         {
-            return Error.NotFound(description: "No Dates Available");
+            return DateErrors.NoDatesAvailable;
         }
-        return availableDates;
+        var result = availableDates
+            .Select(d => new AppDateDto(d.Id, d.StartTime, d.EndTime, d.IsActive))
+            .ToList();
+        return result;
     }
     public async Task<ErrorOr<List<AppDateDto>>> GetAllBookingsAsync()
     {
         var allDates = await dateRepository.GetAllasync();
         if (allDates.Count == 0)
         {
-            return Error.NotFound(description: "No Dates Found");
+            return DateErrors.InvalidDate;
         }
 
         var result = allDates
@@ -63,7 +67,7 @@ public class DateService(IDateRepository dateRepository, IBookingRepository book
             .Select(d => new AppDateDto(d.Id, d.StartTime, d.EndTime, d.IsActive)).ToList();
         if (bookings.Count == 0)
         {
-            return Error.NotFound(description: "No Dates Found");
+            return DateErrors.InvalidDate;
         }
         var skip = (page - 1) * pageSize;
         var pageDates = bookings.Skip(skip).Take(pageSize).ToList();
@@ -72,7 +76,7 @@ public class DateService(IDateRepository dateRepository, IBookingRepository book
         return new PageResult<AppDateDto>(page, pageSize, totalPages, countItem, bookings);
     }
 
-    public async Task<ErrorOr<BookingDateResponse>> BookAvilableDate(string? userId)
+    public async Task<ErrorOr<BookingDateResponse>> BookAvilableDate(string userId, int dateId)
     {
         var matchingDatesResult = await GetAvailableNowAsync();
         if (matchingDatesResult.IsError)
@@ -80,20 +84,54 @@ public class DateService(IDateRepository dateRepository, IBookingRepository book
             return matchingDatesResult.Errors;
         }
 
-        var bookedDate = matchingDatesResult.Value.First();
+        if (string.IsNullOrEmpty(userId))
+        {
+            return DateErrors.UserRequired;
+        }
+        var bookedDate = matchingDatesResult.Value.FirstOrDefault(d => d.Id == dateId);
+
+        if (bookedDate == null)
+        {
+            return DateErrors.InvalidDate;
+        }
+
         var booking = new UserBooking
         {
             UserId = userId,
-            StartTime = bookedDate.StartTime,
-            EndTime = bookedDate.EndTime
+            DateId = dateId,
         };
         await bookingRepository.AddBookingAsync(booking);
+
         return new BookingDateResponse
                (IsActive: true,
                 Message: "Booked Successfully",
                 StartTime: bookedDate.StartTime,
                 EndTime: bookedDate.EndTime);
 
+    }
+    public async Task<ErrorOr<List<UserBookingsResponse>>> GetAllUserBookings(string userId)
+    {
+        if (string.IsNullOrEmpty(userId))
+        {
+            return DateErrors.UserRequired;
+        }
+
+        var bookings = await bookingRepository.GetAllBookingsAsync();
+
+        if (bookings.Count == 0)
+        {
+            return DateErrors.NoBookingsFound;
+        }
+
+        var userBookings = bookings
+            .Where(b => b.UserId == userId)
+            .Select(b => new UserBookingsResponse(
+                b.Date.IsActive,
+                b.Date.StartTime,
+                b.Date.EndTime
+            ))
+            .ToList();
+        return userBookings;
     }
     public async Task DeleteNoneActiveDate()
     {

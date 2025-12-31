@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using TimeOfEnter.Common.Responses;
 using TimeOfEnter.DTO;
+using TimeOfEnter.Errors;
 using TimeOfEnter.Infrastructure.Options;
 using TimeOfEnter.Service.Interfaces;
 namespace TimeOfEnter.Service;
@@ -20,10 +21,10 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOption
     public async Task<ErrorOr<TokenResponse>> RegisterAsync(RegisterDto registerDto)
     {
         if (await userManager.FindByEmailAsync(registerDto.Email) is not null)
-            return Error.NotFound(description: "Email is already registered!");
+            return AccountErrors.EmailAlreadyInUse;
 
         if (await userManager.FindByNameAsync(registerDto.UserName) is not null)
-            return Error.NotFound(description: "Username is already registered!");
+            return AccountErrors.UsernameAlreadyInUse;
 
         var appUser = new AppUser
         {
@@ -33,7 +34,7 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOption
 
         var result = await userManager.CreateAsync(appUser, registerDto.Password);
         if (!result.Succeeded)
-            return Error.Conflict(description: "Password is Week must contain uppercase letters, numbers, and special characters.");
+            return AccountErrors.WeakPassword;
 
         await userManager.AddToRoleAsync(appUser, "User");
         var jwtSecurity = await CreateJwtToken(appUser);
@@ -59,11 +60,11 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOption
     {
         AppUser? appUser = await userManager.FindByEmailAsync(loginDto.Email);
         if (appUser == null)
-            return Error.NotFound(description: "Email or Password Invalid");
+            return AccountErrors.InvalidEmailorPassword;
 
         bool found = await userManager.CheckPasswordAsync(appUser, loginDto.Password);
         if (!found)
-            return Error.NotFound(description: "Email or Password Invalid");
+            return AccountErrors.InvalidEmailorPassword;
 
         var jwtSecurity = await CreateJwtToken(appUser);
         var tokenString = new JwtSecurityTokenHandler().WriteToken(jwtSecurity);
@@ -108,14 +109,14 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOption
         var roleName = addRole.Role.Trim();
 
         if (user == null || !await roleManager.RoleExistsAsync(roleName))
-            return Error.NotFound(description: "Invalid user ID or Role");
+            return AccountErrors.RoleNotFound;
 
         if (await userManager.IsInRoleAsync(user, roleName))
-            return Error.Conflict(description: "User already assigned to this role");
+            return AccountErrors.CannotAssignRole;
 
         var result = await userManager.AddToRoleAsync(user, roleName);
         if (!result.Succeeded)
-            return Error.Failure("Failed to add role");
+            return AccountErrors.FailedAddRole;
 
         return Result.Success;
     }
@@ -125,14 +126,14 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOption
 
         if (user == null || user.RefreshTokens is null)
         {
-            return Error.NotFound(description: "Invalid token");
+            return AccountErrors.InvalidToken;
         }
 
         var refreshToken = user.RefreshTokens.Single(t => t.Token == token);
 
         if (!refreshToken.IsActive)
         {
-            return Error.NotFound(description: "InActive token");
+            return AccountErrors.ExpiredToken;
         }
 
         refreshToken.RevokedOn = DateTime.UtcNow;
@@ -171,16 +172,16 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOption
     public async Task<ErrorOr<Success>> RevokeTokenAsync(string token)
     {
         if (token == null)
-            return Error.NotFound(description: "Token is required");
+            return AccountErrors.TokenRequired;
         var user = await userManager.Users.SingleOrDefaultAsync(u => u!.RefreshTokens!.Any(t => t.Token == token));
 
         if (user == null || user.RefreshTokens is null)
-            return Error.NotFound(description: "Invalid token");
+            return AccountErrors.InvalidToken;
 
         var refreshToken = user.RefreshTokens.Single(t => t.Token == token);
 
         if (!refreshToken.IsActive)
-            return Error.NotFound(description: "InActive token");
+            return AccountErrors.ExpiredToken;
 
         refreshToken.RevokedOn = DateTime.UtcNow;
         await userManager.UpdateAsync(user);
