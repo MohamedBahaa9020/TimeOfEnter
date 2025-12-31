@@ -5,7 +5,7 @@
 namespace TimeOfEnter.Migrations
 {
     /// <inheritdoc />
-    public partial class configration : Migration
+    public partial class ConfigrationFix : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

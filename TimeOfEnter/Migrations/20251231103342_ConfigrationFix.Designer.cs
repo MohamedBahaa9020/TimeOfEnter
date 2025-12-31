@@ -12,8 +12,8 @@ using TimeOfEnter.Database;
 namespace TimeOfEnter.Migrations
 {
     [DbContext(typeof(DateContext))]
-    [Migration("20251230134406_configration")]
-    partial class configration
+    [Migration("20251231103342_ConfigrationFix")]
+    partial class ConfigrationFix
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
