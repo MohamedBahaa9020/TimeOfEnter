@@ -55,4 +55,8 @@ public class AccountController(IAccountService accountService) : ControllerBase
           _ => Ok("Revoked Successfully"),
           errors => this.Problem(errors));
     }
+
+    // TODO: get profile data
+    // TODO: update profile data
+    // TODO: delete account (soft delete)
 }

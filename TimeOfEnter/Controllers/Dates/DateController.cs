@@ -22,6 +22,8 @@ public class DateController(IDateService dateSevice) : ControllerBase
             errors => this.Problem(errors));
     }
 
+    // TODO: update date
+
     [HttpPost("Avilable")]
     public async Task<IActionResult> CheckDate()
     {
@@ -68,4 +70,8 @@ public class DateController(IDateService dateSevice) : ControllerBase
             success => Ok(success),
             errors => this.Problem(errors));
     }
+
+    // TODO: get booking by id
+    // TODO: cancel booking
+    // TODO: cancel all bookings for a user
 }
