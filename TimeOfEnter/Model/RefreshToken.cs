@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 namespace TimeOfEnter.Model;
 
-[Owned]
 public class RefreshToken
 {
     public required string Token { get; set; }

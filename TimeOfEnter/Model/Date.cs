@@ -1,4 +1,7 @@
-﻿namespace TimeOfEnter.Model;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace TimeOfEnter.Model;
 
 public class Date
 {
