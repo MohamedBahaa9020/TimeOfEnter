@@ -9,8 +9,11 @@ public class BookingRepository(DateContext context) : IBookingRepository
         await context.UserBooking.AddAsync(user);
         await context.SaveChangesAsync();
     }
-    public async Task<List<UserBooking>> GetAllBookingsAsync()
+    public async Task<List<UserBooking>> GetAllBookingsAsync(string userId)
     {
-        return await context.UserBooking.ToListAsync();
+        return await context.UserBooking
+    .Include(b => b.Date)
+    .Where(b => b.UserId == userId)
+    .ToListAsync();
     }
 }

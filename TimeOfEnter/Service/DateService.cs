@@ -116,7 +116,7 @@ public class DateService(IDateRepository dateRepository, IBookingRepository book
             return DateErrors.UserRequired;
         }
 
-        var bookings = await bookingRepository.GetAllBookingsAsync();
+        var bookings = await bookingRepository.GetAllBookingsAsync(userId);
 
         if (bookings.Count == 0)
         {
@@ -124,13 +124,15 @@ public class DateService(IDateRepository dateRepository, IBookingRepository book
         }
 
         var userBookings = bookings
-            .Where(b => b.UserId == userId)
+            .Where(b => b.UserId == userId && b.Date != null)
             .Select(b => new UserBookingsResponse(
                 b.Date.IsActive,
                 b.Date.StartTime,
                 b.Date.EndTime
             ))
             .ToList();
+        if (userBookings.Count == 0)
+            return DateErrors.NoBookingsFound;
         return userBookings;
     }
     public async Task DeleteNoneActiveDate()
