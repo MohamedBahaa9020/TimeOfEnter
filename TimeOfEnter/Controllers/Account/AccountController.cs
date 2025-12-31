@@ -57,6 +57,9 @@ public class AccountController(IAccountService accountService) : ControllerBase
     }
 
     // TODO: get profile data
-    // TODO: update profile data
+    // TODO: update profile data (email, picture)
     // TODO: delete account (soft delete)
+
+    // TODO: upload profile picture
+    // TODO: delete profile picture
 }
