@@ -64,4 +64,12 @@ public static class AccountErrors
         code: "Account.UserHasActiveBookings",
         description: "UserHasActiveBookings"
     );
+    public static Error Nouploadsfolderfound => Error.NotFound(
+     code: "Account.Nouploadsfolderfound",
+     description: "No uploads folder found."
+    );
+    public static Error NoImageToDelete => Error.NotFound(
+     code: "Account.NoImageToDelete",
+     description: "No image to delete."
+    );
 }

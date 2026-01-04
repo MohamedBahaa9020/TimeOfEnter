@@ -14,4 +14,6 @@ public interface IAccountService
     Task<ErrorOr<UserDataDto>> GetProfileData(string userId);
     Task<ErrorOr<MessageResponse>> UpdateProfileData(string userId, UpdateDataDto updateData);
     Task<ErrorOr<MessageResponse>> DeleteProfileData(string userId);
+    Task<ErrorOr<MessageResponse>> DeleteUserImage(string userId);
+    Task<ErrorOr<MessageResponse>> DeleteUnusedImagesAsync();
 }

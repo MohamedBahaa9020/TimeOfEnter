@@ -13,4 +13,11 @@ public class AccountRepository(DateContext context) : IAccountRepository
     {
         return await context.Users.FindAsync(userId);
     }
+    public async Task<List<string?>> SelectUsedImagesAsync()
+    {
+        return await context.Users
+            .Where(u => !string.IsNullOrEmpty(u.AttachmentPath))
+            .Select(u => u.AttachmentPath)
+            .ToListAsync();
+    }
 }

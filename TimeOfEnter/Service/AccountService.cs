@@ -180,6 +180,46 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOption
         return new MessageResponse("User deleted successfully.");
 
     }
+    public async Task<ErrorOr<MessageResponse>> DeleteUserImage(string userId)
+    {
+        var user = await accountRepository.GetByIdAsync(userId);
+        if (user == null)
+        {
+            return AccountErrors.UserNotFound;
+        }
+        if (string.IsNullOrEmpty(user.AttachmentPath))
+        {
+            return AccountErrors.NoImageToDelete;
+        }
+        var imagePath = Path.Combine("wwwroot", user.AttachmentPath.TrimStart('/'));
+        if (File.Exists(imagePath))
+        {
+            File.Delete(imagePath);
+        }
+        user.AttachmentPath = null;
+        await userManager.UpdateAsync(user);
+        return new MessageResponse("User image deleted successfully.");
+    }
+    public async Task<ErrorOr<MessageResponse>> DeleteUnusedImagesAsync()
+    {
+        string uploadsFolder = Path.Combine("wwwroot", "uploads");
+        if (!Directory.Exists(uploadsFolder))
+        {
+            return AccountErrors.Nouploadsfolderfound;
+        }
+        var usedImagePaths = await accountRepository.SelectUsedImagesAsync();
+        var allImages = Directory.GetFiles(uploadsFolder);
+        foreach (var filePath in allImages)
+        {
+            var relativePath = "/uploads/" + Path.GetFileName(filePath);
+            if (!usedImagePaths.Contains(relativePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+        return new MessageResponse("Unused images deleted successfully.");
+    }
+
     public async Task<ErrorOr<MessageResponse>> AddRoleAsync(AddRoleDto addRole)
     {
         var user = await userManager.FindByIdAsync(addRole.UserId);

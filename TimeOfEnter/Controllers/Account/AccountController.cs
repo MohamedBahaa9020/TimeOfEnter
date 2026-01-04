@@ -96,4 +96,15 @@ public class AccountController(IAccountService accountService) : ControllerBase
             errors => this.Problem(errors)
             );
     }
+    [Authorize]
+    [HttpDelete("DeleteUserImage")]
+    public async Task<IActionResult> DeleteUserImage()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var result = await accountService.DeleteUserImage(userId!);
+        return result.Match(
+            success => Ok(success),
+            errors => this.Problem(errors)
+            );
+    }
 }

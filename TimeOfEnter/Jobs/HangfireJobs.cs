@@ -16,6 +16,11 @@ namespace TimeOfEnter.Jobs
             service => service.UpdateDateActivation(),
             Cron.Minutely
             );
+            recurringJobManager.AddOrUpdate<IAccountService>(
+            "cleanup-unused-images",
+            x => x.DeleteUnusedImagesAsync(),
+            Cron.Daily
+            );
         }
     }
 }
