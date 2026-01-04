@@ -22,6 +22,8 @@ public class DateController(IDateService dateSevice) : ControllerBase
             errors => this.Problem(errors));
     }
 
+    // TODO: update date
+
     [HttpPost("Avilable")]
     public async Task<IActionResult> CheckDate()
     {
