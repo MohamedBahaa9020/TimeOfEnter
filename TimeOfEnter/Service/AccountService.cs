@@ -11,11 +11,12 @@ using TimeOfEnter.Common.Responses;
 using TimeOfEnter.DTO;
 using TimeOfEnter.Errors;
 using TimeOfEnter.Infrastructure.Options;
+using TimeOfEnter.Repository;
 using TimeOfEnter.Service.Interfaces;
 namespace TimeOfEnter.Service;
 
 public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOptions> jwtOptions,
-    RoleManager<IdentityRole> roleManager) : IAccountService
+    RoleManager<IdentityRole> roleManager, IAccountRepository accountRepository, IBookingRepository bookingRepository) : IAccountService
 {
     private readonly JwtOptions jwtOptions = jwtOptions.Value;
     public async Task<ErrorOr<TokenResponse>> RegisterAsync(RegisterDto registerDto)
@@ -101,6 +102,83 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOption
                 RefreshTokenExpiresOn: refreshToken.ExpireON
             );
         }
+    }
+    public async Task<ErrorOr<List<UserDataDto>>> AllUsersAsync()
+    {
+        var users = await accountRepository.GetAllUsersAsync();
+        if (users == null || users.Count == 0)
+        {
+            return AccountErrors.NoUsersFound;
+        }
+        var userDtos = users.Select(user => new UserDataDto
+        (
+           UserName: user.UserName!,
+           Email: user.Email!
+        )).ToList();
+
+        return userDtos;
+    }
+    public async Task<ErrorOr<UserDataDto>> GetProfileData(string userId)
+    {
+        var user = await accountRepository.GetByIdAsync(userId);
+        if (user == null)
+        {
+            return AccountErrors.UserNotFound;
+        }
+        var userDto = new UserDataDto
+        (
+           UserName: user.UserName!,
+           Email: user.Email!
+        );
+        return userDto;
+    }
+    public async Task<ErrorOr<MessageResponse>> UpdateProfileData(string userId, UpdateDataDto updateData)
+    {
+        var user = await accountRepository.GetByIdAsync(userId);
+        if (user == null)
+        {
+            return AccountErrors.UserNotFound;
+        }
+        var result = await userManager.SetEmailAsync(user, updateData.Email);
+        if (!result.Succeeded)
+        {
+            return AccountErrors.FailedUpdateEmail;
+        }
+        if (updateData.Photo != null && updateData.Photo.Length > 0)
+        {
+            var Extention = Path.GetExtension(updateData.Photo.FileName);
+            var fileName = $"{Guid.NewGuid()}{Extention}";
+            string uploadsFolder = Path.Combine("wwwroot", "uploads");
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+            var filePath = Path.Combine(uploadsFolder, fileName);
+            using var fileStream = new FileStream(filePath, FileMode.Create);
+            await updateData.Photo.CopyToAsync(fileStream);
+            user.AttachmentPath = $"/uploads/{fileName}";
+            await userManager.UpdateAsync(user);
+        }
+        return new MessageResponse("Email Updated Successfully.");
+    }
+    public async Task<ErrorOr<MessageResponse>> DeleteProfileData(string userId)
+    {
+        var user = await accountRepository.GetByIdAsync(userId);
+        if (user == null)
+        {
+            return AccountErrors.UserNotFound;
+        }
+        var bookings = await bookingRepository.GetAllBookingsAsync(userId);
+
+        if (bookings.Any(b => !b.IsDeleted))
+        {
+            return AccountErrors.UserHasActiveBookings;
+        }
+        user.IsDeleted = true;
+        await userManager.UpdateAsync(user);
+
+        return new MessageResponse("User deleted successfully.");
+
     }
     public async Task<ErrorOr<Success>> AddRoleAsync(AddRoleDto addRole)
     {
@@ -188,7 +266,6 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOption
 
         return Result.Success;
     }
-
     private async Task<JwtSecurityToken> CreateJwtToken(AppUser user)
     {
         List<Claim> claims =

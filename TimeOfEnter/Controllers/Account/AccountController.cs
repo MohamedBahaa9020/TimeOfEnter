@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using TimeOfEnter.Common.Extensions;
 using TimeOfEnter.DTO;
 using TimeOfEnter.Service.Interfaces;
@@ -54,5 +56,44 @@ public class AccountController(IAccountService accountService) : ControllerBase
         return refreshToken.Match(
           _ => Ok("Revoked Successfully"),
           errors => this.Problem(errors));
+    }
+    [HttpGet("AllUsers")]
+    public async Task<IActionResult> GetAllUsers()
+    {
+        var users = await accountService.AllUsersAsync();
+        return users.Match(
+            success => Ok(success),
+            errors => this.Problem(errors));
+    }
+    [Authorize]
+    [HttpGet("UserProfile")]
+    public async Task<IActionResult> GetUserProfile()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userProfile = await accountService.GetProfileData(userId!);
+        return userProfile.Match(
+            success => Ok(success),
+            errors => this.Problem(errors));
+    }
+    [Authorize]
+    [HttpPut("UpdateEmail")]
+    public async Task<IActionResult> UpdateData([FromForm] UpdateDataDto dataDto)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var result = await accountService.UpdateProfileData(userId!, dataDto);
+        return result.Match(
+            success => Ok(success),
+            errors => this.Problem(errors));
+    }
+    [Authorize]
+    [HttpDelete]
+    public async Task<IActionResult> DeleteUserProfile()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var result = await accountService.DeleteProfileData(userId!);
+        return result.Match(
+            success => Ok(success),
+            errors => this.Problem(errors)
+            );
     }
 }

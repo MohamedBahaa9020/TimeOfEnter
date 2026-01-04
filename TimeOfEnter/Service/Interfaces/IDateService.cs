@@ -12,6 +12,8 @@ public interface IDateService
     Task<ErrorOr<BookingDateResponse>> BookAvilableDate(string userId, int dateId);
     Task<ErrorOr<List<UserBookingsResponse>>> GetAllUserBookings(string userId);
     Task<ErrorOr<PageResult<AppDateDto>>> GetPagedAsync(int page, int pageSize);
+    Task<ErrorOr<CancelResponse>> CancelBookingAsync(string userId, int bookingId);
+    Task<ErrorOr<MessageResponse>> CancelAllBooking(string userId);
     Task DeleteNoneActiveDate();
     Task UpdateDateActivation();
 }

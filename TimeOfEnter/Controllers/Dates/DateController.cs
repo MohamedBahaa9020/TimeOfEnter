@@ -68,4 +68,22 @@ public class DateController(IDateService dateSevice) : ControllerBase
             success => Ok(success),
             errors => this.Problem(errors));
     }
+    [HttpDelete("CancelBooking")]
+    public async Task<IActionResult> CancelBooking([FromBody] int bookingId)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var result = await dateSevice.CancelBookingAsync(userId!, bookingId);
+        return result.Match(
+            success => Ok(success),
+            errors => this.Problem(errors));
+    }
+    [HttpDelete("CancelAllBookings")]
+    public async Task<IActionResult> CancelAllUserBookings()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var result = await dateSevice.CancelAllBooking(userId!);
+        return result.Match(
+            success => Ok(success),
+            errors => this.Problem(errors));
+    }
 }

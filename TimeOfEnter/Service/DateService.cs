@@ -135,6 +135,33 @@ public class DateService(IDateRepository dateRepository, IBookingRepository book
             return DateErrors.NoBookingsFound;
         return userBookings;
     }
+    public async Task<ErrorOr<CancelResponse>> CancelBookingAsync(string userId, int bookingId)
+    {
+        if (string.IsNullOrEmpty(userId))
+        {
+            return DateErrors.UserRequired;
+        }
+        var booking = await bookingRepository.GetBookingByIdAsync(userId, bookingId);
+        if (booking == null || booking.UserId != userId)
+        {
+            return DateErrors.NoBookingsFound;
+        }
+        booking.IsDeleted = true;
+        await bookingRepository.SaveAsync();
+        return new CancelResponse(Message: "Booking Canceled Successfully",
+            StartTime: booking.Date.StartTime, EndTime: booking.Date.EndTime);
+    }
+    public async Task<ErrorOr<MessageResponse>> CancelAllBooking(string userId)
+    {
+        var allBookings = await bookingRepository.GetAllBookingsAsync(userId);
+        if (allBookings.Count == 0)
+        {
+            return DateErrors.NoBookingsFound;
+        }
+        allBookings.ForEach(b => b.IsDeleted = true);
+        await bookingRepository.SaveAsync();
+        return new MessageResponse(Message: "All Bookings Canceled Successfully");
+    }
     public async Task DeleteNoneActiveDate()
     {
         var dates = await dateRepository.GetAllasync();

@@ -52,4 +52,16 @@ public static class AccountErrors
         code: "Account.TokenRequired",
         description: "Token is required"
     );
+    public static Error NoUsersFound => Error.NotFound(
+        code: "Account.NoUsersFound",
+        description: "No users found"
+    );
+    public static Error FailedUpdateEmail => Error.Failure(
+        code: "Account.FailedUpdateEmail",
+        description: "Failed Update Email."
+    );
+    public static Error UserHasActiveBookings => Error.Conflict(
+        code: "Account.UserHasActiveBookings",
+        description: "UserHasActiveBookings"
+    );
 }

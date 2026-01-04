@@ -75,6 +75,7 @@ public static class DependencyInjection
 
         services.AddScoped<IDateRepository, DateRepository>();
         services.AddScoped<IBookingRepository, BookingRepository>();
+        services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<IDateService, DateService>();
         services.AddScoped<IAccountService, AccountService>();
         services.AddSwaggerGen(swagger =>
