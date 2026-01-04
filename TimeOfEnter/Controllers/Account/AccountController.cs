@@ -34,7 +34,7 @@ public class AccountController(IAccountService accountService) : ControllerBase
     {
         var result = await accountService.AddRoleAsync(add);
         return result.Match(
-            _ => Ok("Role added successfully"),
+            success => Ok(success),
             errors => this.Problem(errors));
     }
 
@@ -54,7 +54,7 @@ public class AccountController(IAccountService accountService) : ControllerBase
         var refreshToken = await accountService.RevokeTokenAsync(token);
 
         return refreshToken.Match(
-          _ => Ok("Revoked Successfully"),
+          success => Ok(success),
           errors => this.Problem(errors));
     }
     [HttpGet("AllUsers")]
@@ -86,7 +86,7 @@ public class AccountController(IAccountService accountService) : ControllerBase
             errors => this.Problem(errors));
     }
     [Authorize]
-    [HttpDelete]
+    [HttpDelete("DeleteUser")]
     public async Task<IActionResult> DeleteUserProfile()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

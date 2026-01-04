@@ -180,7 +180,7 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOption
         return new MessageResponse("User deleted successfully.");
 
     }
-    public async Task<ErrorOr<Success>> AddRoleAsync(AddRoleDto addRole)
+    public async Task<ErrorOr<MessageResponse>> AddRoleAsync(AddRoleDto addRole)
     {
         var user = await userManager.FindByIdAsync(addRole.UserId);
 
@@ -196,7 +196,7 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOption
         if (!result.Succeeded)
             return AccountErrors.FailedAddRole;
 
-        return Result.Success;
+        return new MessageResponse("Role added successfully");
     }
     public async Task<ErrorOr<TokenResponse>> RefreshTokenAsync(string token)
     {
@@ -247,7 +247,7 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOption
             CreatedOn = DateTime.UtcNow
         };
     }
-    public async Task<ErrorOr<Success>> RevokeTokenAsync(string token)
+    public async Task<ErrorOr<MessageResponse>> RevokeTokenAsync(string token)
     {
         if (token == null)
             return AccountErrors.TokenRequired;
@@ -264,7 +264,7 @@ public class AccountService(UserManager<AppUser> userManager, IOptions<JwtOption
         refreshToken.RevokedOn = DateTime.UtcNow;
         await userManager.UpdateAsync(user);
 
-        return Result.Success;
+        return new MessageResponse("Revoked Successfully");
     }
     private async Task<JwtSecurityToken> CreateJwtToken(AppUser user)
     {

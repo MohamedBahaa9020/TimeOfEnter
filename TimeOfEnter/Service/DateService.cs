@@ -9,7 +9,7 @@ namespace TimeOfEnter.Service;
 
 public class DateService(IDateRepository dateRepository, IBookingRepository bookingRepository) : IDateService
 {
-    public async Task<ErrorOr<Success>> AddBookingAsync(TimeBookingWithoutIdDto dto)
+    public async Task<ErrorOr<MessageResponse>> AddBookingAsync(TimeBookingWithoutIdDto dto)
     {
         var allDates = await dateRepository.GetAllasync();
         var MatchingTime = allDates.Any(d =>
@@ -29,7 +29,7 @@ public class DateService(IDateRepository dateRepository, IBookingRepository book
 
         await dateRepository.Addasync(booking);
         await dateRepository.SaveAsync();
-        return Result.Success;
+        return new MessageResponse(Message: "Added Successfully");
     }
 
     public async Task<ErrorOr<List<AppDateDto>>> GetAvailableNowAsync()

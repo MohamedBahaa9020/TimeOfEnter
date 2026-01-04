@@ -18,11 +18,9 @@ public class DateController(IDateService dateSevice) : ControllerBase
     {
         var result = await dateSevice.AddBookingAsync(dto);
         return result.Match(
-            success => Ok("Added Successfully"),
+            success => Ok(success),
             errors => this.Problem(errors));
     }
-
-    // TODO: update date
 
     [HttpPost("Avilable")]
     public async Task<IActionResult> CheckDate()

@@ -6,7 +6,7 @@ namespace TimeOfEnter.Service.Interfaces;
 
 public interface IDateService
 {
-    Task<ErrorOr<Success>> AddBookingAsync(TimeBookingWithoutIdDto dto);
+    Task<ErrorOr<MessageResponse>> AddBookingAsync(TimeBookingWithoutIdDto dto);
     Task<ErrorOr<List<AppDateDto>>> GetAvailableNowAsync();
     Task<ErrorOr<List<AppDateDto>>> GetAllBookingsAsync();
     Task<ErrorOr<BookingDateResponse>> BookAvilableDate(string userId, int dateId);
