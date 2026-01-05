@@ -108,3 +108,12 @@ public class AccountController(IAccountService accountService) : ControllerBase
             );
     }
 }
+
+// TODO: return photo url
+// TODO: apply ef core query filter for soft deletion
+// TODO: add configuration file for all the models exist
+// TODO: seperate jwt service from the account service 
+// TODO: Send email to the user when the account is created
+// TODO: Send notification via signalR when the user is created 
+// TODO: Apply Atomicity to the database operations (rollback)
+// TODO: refactor the codebase (namespace extension vs 2022)
